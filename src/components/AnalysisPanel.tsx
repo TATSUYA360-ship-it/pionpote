@@ -1,5 +1,5 @@
 // AnalysisPanel.tsx : affiche les 3 meilleurs coups trouvés par Stockfish
-// et la liste des pièces en danger.
+// et la liste des pièces en danger. Le bouton « Voir » lance l'animation manga du coup.
 import type { DangerPiece } from "@/lib/danger";
 import { formatScore, uciToSan } from "@/lib/evaluation";
 import type { Color } from "@/lib/position";
@@ -11,9 +11,10 @@ type Props = {
   turn: Color;
   lines: EngineLine[];
   danger: DangerPiece[];
+  onShowMove: (uci: string) => void;
 };
 
-export default function AnalysisPanel({ fen, turn, lines, danger }: Props) {
+export default function AnalysisPanel({ fen, turn, lines, danger, onShowMove }: Props) {
   return (
     <div className={styles.panel}>
       <h2 className={styles.title}>Les 3 meilleurs coups</h2>
@@ -22,6 +23,13 @@ export default function AnalysisPanel({ fen, turn, lines, danger }: Props) {
           <li key={line.multipv} className={line.multipv === 1 ? styles.best : ""}>
             <span className={styles.san}>{uciToSan(fen, line.pv[0])}</span>
             <span className={styles.score}>{formatScore(line, turn)}</span>
+            <button
+              type="button"
+              className={styles.play}
+              onClick={() => onShowMove(line.pv[0])}
+            >
+              ▶ Voir
+            </button>
           </li>
         ))}
       </ol>

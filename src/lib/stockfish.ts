@@ -15,7 +15,9 @@ export type EngineLine = {
 
 export type AnalysisResult = { lines: EngineLine[]; bestMove: string | null };
 
-const ENGINE_URL = "/stockfish/stockfish-18-lite-single.js";
+// Adresse du moteur. NEXT_PUBLIC_BASE_PATH sert seulement si l'appli
+// est publiée dans un sous-dossier (sinon c'est vide).
+const ENGINE_URL = `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/stockfish/stockfish-18-lite-single.js`;
 
 export class StockfishEngine {
   private worker: Worker;

@@ -22,6 +22,8 @@ import { poteReaction, type Mood } from "@/lib/evaluation";
 import PiecePalette, { type Tool } from "./PiecePalette";
 import AnalysisPanel from "./AnalysisPanel";
 import Pote from "./Pote";
+import MangaFx from "./MangaFx";
+import { buildMoveFx, type MoveFx } from "@/lib/moveFx";
 import styles from "./BoardEditor.module.css";
 
 type Analysis = { fen: string; turn: Color; lines: EngineLine[]; danger: DangerPiece[] };
@@ -39,6 +41,10 @@ export default function BoardEditor() {
     text: "Salut, moi c'est Pote ! Place les pièces comme sur ton échiquier, choisis qui joue, puis appuie sur « Analyser ».",
   });
 
+  // Coup montré en animation manga (null = on affiche la position éditée).
+  const [fx, setFx] = useState<MoveFx | null>(null);
+  const boardBoxRef = useRef<HTMLDivElement>(null);
+
   // Le moteur est créé une seule fois, au premier clic sur "Analyser".
   const engineRef = useRef<StockfishEngine | null>(null);
   useEffect(() => () => engineRef.current?.terminate(), []);
@@ -47,6 +53,7 @@ export default function BoardEditor() {
   const fen = useMemo(() => boardToFen(board, turn), [board, turn]);
   useEffect(() => {
     setAnalysis(null);
+    setFx(null);
     setStatus((s) => (s === "loading" ? s : "idle"));
   }, [fen]);
 
@@ -54,7 +61,7 @@ export default function BoardEditor() {
 
   // --- Interactions avec le plateau ---
   const onSquareClick = (square: Square) => {
-    if (tool === "move") return;
+    if (tool === "move" || fx) return;
     updateBoard((b) => {
       if (tool === "erase") delete b[square];
       else b[square] = tool;
@@ -116,39 +123,90 @@ export default function BoardEditor() {
     }
   };
 
+  // --- Animation manga d'un coup proposé par Stockfish ---
+  const showMove = (uci: string) => {
+    if (!analysis) return;
+    const next = buildMoveFx(analysis.fen, uci);
+    if (!next) return;
+    // Si un coup est déjà affiché, on revient d'abord à la position de départ,
+    // puis on rejoue le coup juste après, pour que la pièce glisse à nouveau.
+    setFx(null);
+    requestAnimationFrame(() => {
+      setFx(next);
+      setPote(next.pote);
+      // Secousse du plateau au moment de l'impact (après le glissement de la pièce).
+      if (next.kind !== "move" && !prefersReducedMotion()) {
+        const strength = next.kind === "mate" ? 10 : 6;
+        boardBoxRef.current?.animate(
+          [
+            { transform: "translate(0, 0)" },
+            { transform: `translate(${-strength}px, ${strength / 2}px)` },
+            { transform: `translate(${strength}px, ${-strength / 2}px)` },
+            { transform: `translate(${-strength / 2}px, ${-strength / 2}px)` },
+            { transform: `translate(${strength / 2}px, ${strength / 2}px)` },
+            { transform: "translate(0, 0)" },
+          ],
+          { duration: next.kind === "mate" ? 500 : 350, delay: 380, easing: "ease-out" },
+        );
+      }
+    });
+  };
+
+  const backToPosition = () => {
+    setFx(null);
+    if (analysis) setPote(poteReaction(analysis.lines[0]));
+  };
+
   // --- Dessins sur le plateau ---
   const best = analysis?.lines[0]?.pv[0];
-  const arrows: [Square, Square, string][] = best
+  const arrows: [Square, Square, string][] = best && !fx
     ? [[best.slice(0, 2) as Square, best.slice(2, 4) as Square, "rgb(34, 170, 80)"]]
     : [];
 
   const squareStyles: Record<string, React.CSSProperties> = {};
-  analysis?.danger.forEach((d) => {
-    squareStyles[d.square] = {
-      background: "radial-gradient(circle, rgba(230,40,40,0.85) 45%, rgba(230,40,40,0.35) 75%)",
-    };
-  });
+  if (fx) {
+    // Pendant l'animation : on surligne la case de départ et d'arrivée.
+    squareStyles[fx.from] = { background: "rgba(255, 215, 0, 0.45)" };
+    squareStyles[fx.to] = { background: "rgba(255, 215, 0, 0.6)" };
+  } else {
+    analysis?.danger.forEach((d) => {
+      squareStyles[d.square] = {
+        background: "radial-gradient(circle, rgba(230,40,40,0.85) 45%, rgba(230,40,40,0.35) 75%)",
+      };
+    });
+  }
 
   return (
     <div className={styles.layout}>
       <div className={styles.boardCol}>
-        <div className={styles.board}>
+        <div className={styles.board} ref={boardBoxRef}>
           <Chessboard
             id="editeur"
-            position={board}
+            position={fx ? fx.fenAfter : board}
             boardOrientation={orientation}
             onSquareClick={onSquareClick}
             onPieceDrop={onPieceDrop}
             onPieceDropOffBoard={onPieceDropOffBoard}
             dropOffBoardAction="trash"
             onPromotionCheck={() => false}
-            arePiecesDraggable={tool === "move"}
+            arePiecesDraggable={tool === "move" && !fx}
             customArrows={arrows}
             customSquareStyles={squareStyles}
             areArrowsAllowed={false}
-            animationDuration={150}
+            animationDuration={fx ? 400 : 150}
           />
+          {fx && <MangaFx key={fx.id} fx={fx} orientation={orientation} />}
         </div>
+        {fx && (
+          <div className={styles.row}>
+            <button type="button" onClick={() => showMove(fx.uci)}>
+              🔁 Revoir
+            </button>
+            <button type="button" className={styles.back} onClick={backToPosition}>
+              ↩️ Revenir à ma position
+            </button>
+          </div>
+        )}
         <PiecePalette tool={tool} onChange={setTool} />
         <div className={styles.row}>
           <button type="button" onClick={() => setBoard(fenToBoard(START_FEN))}>
@@ -196,9 +254,14 @@ export default function BoardEditor() {
             turn={analysis.turn}
             lines={analysis.lines}
             danger={analysis.danger}
+            onShowMove={showMove}
           />
         )}
       </div>
     </div>
   );
+}
+
+function prefersReducedMotion() {
+  return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
 }

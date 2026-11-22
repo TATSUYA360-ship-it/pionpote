@@ -1,0 +1,94 @@
+/* Durée totale ≈ 1,4 s. La pièce glisse pendant ~0,4 s, puis l'impact arrive. */
+.layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 10;
+}
+
+/* --- Traits de vitesse --- */
+.speed {
+  position: absolute;
+  height: 11%;
+  transform-origin: 0 50%;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0 5px,
+    rgba(20, 20, 20, 0.75) 5px 7px
+  );
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 60%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 60%, transparent);
+  animation: speed 0.55s ease-out forwards;
+  opacity: 0;
+}
+@keyframes speed {
+  0% { opacity: 0; clip-path: inset(0 100% 0 0); }
+  20% { opacity: 1; }
+  70% { opacity: 1; clip-path: inset(0 0 0 0); }
+  100% { opacity: 0; clip-path: inset(0 0 0 60%); }
+}
+
+/* --- Rayons de concentration (fond manga) --- */
+.focus {
+  position: absolute;
+  inset: -20%;
+  -webkit-mask-image: radial-gradient(circle, transparent 30%, #000 75%);
+  mask-image: radial-gradient(circle, transparent 30%, #000 75%);
+  opacity: 0;
+  animation: focus 1.2s ease-out 0.35s forwards;
+}
+@keyframes focus {
+  0% { opacity: 0; }
+  15% { opacity: 0.9; }
+  100% { opacity: 0; }
+}
+
+/* --- Éclair d'impact --- */
+.burst {
+  position: absolute;
+  width: 34%;
+  height: 34%;
+  transform: translate(-50%, -50%) scale(0);
+  animation: burst 0.7s cubic-bezier(0.2, 1.6, 0.4, 1) 0.38s forwards;
+}
+.burstOuter { fill: #ffe14d; stroke: #111; stroke-width: 3; }
+.burstInner { fill: #fff; }
+.check .burstOuter, .mate .burstOuter { fill: #ff4b3e; }
+@keyframes burst {
+  0% { transform: translate(-50%, -50%) scale(0) rotate(0deg); opacity: 1; }
+  50% { transform: translate(-50%, -50%) scale(1.1) rotate(12deg); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1.25) rotate(18deg); opacity: 0; }
+}
+
+/* --- Onomatopée --- */
+.word {
+  position: absolute;
+  transform: translate(-50%, -50%) scale(0) rotate(-8deg);
+  font-family: var(--font-manga), Impact, "Arial Black", sans-serif;
+  font-size: clamp(28px, 9vw, 56px);
+  letter-spacing: 1px;
+  white-space: nowrap;
+  color: #fff;
+  -webkit-text-stroke: 2px #111;
+  paint-order: stroke fill;
+  text-shadow: 4px 4px 0 #111;
+  animation: word 1.4s cubic-bezier(0.2, 1.8, 0.4, 1) 0.32s forwards;
+}
+.move .word { font-size: clamp(20px, 6vw, 34px); color: #9fe3b4; animation-delay: 0.1s; }
+.capture .word { color: #ffd23f; }
+.check .word, .mate .word { color: #ff4b3e; }
+.mate .word { font-size: clamp(30px, 10vw, 64px); }
+@keyframes word {
+  0% { transform: translate(-50%, -50%) scale(0) rotate(-8deg); opacity: 1; }
+  25% { transform: translate(-50%, -50%) scale(1.15) rotate(-8deg); }
+  35% { transform: translate(-50%, -50%) scale(1) rotate(-6deg); }
+  80% { opacity: 1; }
+  100% { transform: translate(-50%, -60%) scale(1) rotate(-6deg); opacity: 0; }
+}
+
+/* Pour les personnes qui préfèrent moins d'animations (réglage du téléphone) */
+@media (prefers-reduced-motion: reduce) {
+  .speed, .focus, .burst { display: none; }
+  .word { animation-duration: 2s; }
+}

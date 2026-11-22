@@ -7,9 +7,22 @@
 .title { font-size: 16px; margin: 4px 0 8px; }
 .moves { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 4px; }
 .moves li::marker { color: var(--muted); }
-.moves li { padding: 4px 6px; border-radius: 6px; }
+.moves li { padding: 6px; border-radius: 6px; line-height: 30px; }
 .best { background: var(--best-bg); font-weight: 600; }
 .san { display: inline-block; min-width: 70px; }
 .score { color: var(--muted); font-variant-numeric: tabular-nums; }
 .hint { font-size: 13px; color: var(--muted); margin: 8px 0; }
 .danger { margin: 0; padding-left: 20px; }
+.play {
+  float: right;
+  line-height: 1.2;
+  border: 2px solid #111;
+  background: #ffd23f;
+  color: #111;
+  font-weight: 700;
+  border-radius: 8px;
+  padding: 4px 10px;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 #111;
+}
+.play:active { transform: translate(2px, 2px); box-shadow: none; }

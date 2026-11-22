@@ -1,6 +1,10 @@
 // layout.tsx : le "cadre" commun à toutes les pages (langue, titre, styles).
 import type { Metadata, Viewport } from "next";
+import { Bangers } from "next/font/google";
 import "./globals.css";
+
+// Police "bande dessinée" pour les onomatopées manga (BAM !, ÉCHEC !).
+const manga = Bangers({ weight: "400", subsets: ["latin"], variable: "--font-manga" });
 
 export const metadata: Metadata = {
   title: "PionPote",
@@ -15,7 +19,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
-      <body>{children}</body>
+      <body className={manga.variable}>{children}</body>
     </html>
   );
 }
