@@ -1,43 +1,161 @@
-/* globals.css : couleurs et styles de base, valables partout. */
+/* globals.css : le "style PionPote", valable partout.
+   Toutes les couleurs, tailles et ombres sont rangées ici dans des variables (--quelque-chose).
+   Les autres fichiers .css utilisent ces variables au lieu d'écrire des couleurs à la main :
+   comme ça, toute l'appli reste cohérente. Les règles sont expliquées dans DESIGN.md. */
 :root {
-  --bg: #f7f4ee;
-  --card: #ffffff;
-  --text: #1f1d1a;
-  --muted: #6b665e;
-  --border: #ddd6c8;
-  --accent: #2f8f4e;
-  --best-bg: #e3f4e8;
-  --ink: #2b2620;
+  /* Papier et encre (esprit planche de manga) */
+  --bg: #f6efe0;          /* fond "papier" */
+  --card: #fffdf8;        /* cartes et bulles */
+  --text: #1f1b16;
+  --muted: #6b6257;
+  --ink: #1b1712;         /* traits d'encre : bordures, ombres, Pote */
   --pote-body: #fbf6ea;
+
+  /* Couleurs qui ont un sens (les mêmes que les flèches du plateau) */
+  --green: #2f8f4e;       /* bon coup, action principale */
+  --green-soft: #dff2e4;
+  --red: #d93b2b;         /* pièce en danger, gaffe */
+  --red-soft: #fbe1dc;
+  --orange: #ef8a1f;      /* menace de l'adversaire */
+  --yellow: #ffd23f;      /* bouton manga "Voir", surlignage */
+  --blue-soft: #e3eefb;   /* Pote qui réfléchit */
+
+  /* Formes */
+  --line: 2.5px solid var(--ink);
+  --shadow: 3px 3px 0 var(--ink);   /* ombre dure, pas floue */
+  --shadow-lg: 5px 5px 0 var(--ink);
+  --radius: 14px;
+  --radius-sm: 10px;
+
+  /* Espacements : on n'utilise que ces valeurs */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+
+  /* Anciennes variables, gardées pour compatibilité */
+  --accent: var(--green);
+  --border: var(--ink);
+  --best-bg: var(--green-soft);
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #171614;
-    --card: #23211e;
-    --text: #f1ede6;
-    --muted: #a8a196;
-    --border: #3a3631;
-    --accent: #3aa860;
-    --best-bg: #1f3a28;
-    --ink: #1b1813;
+    --bg: #17140f;
+    --card: #25211b;
+    --text: #f3ede2;
+    --muted: #b0a698;
+    --ink: #0b0906;
     --pote-body: #f4ecd8;
+    --green: #36a35a;
+    --green-soft: #1e3a27;
+    --red: #ec5443;
+    --red-soft: #46201b;
+    --blue-soft: #1f2c3d;
+    /* Dans le noir, le trait d'encre devient clair pour rester visible */
+    --line: 2.5px solid #d8cdb9;
+    --shadow: 3px 3px 0 #000;
+    --shadow-lg: 5px 5px 0 #000;
   }
 }
+
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body {
-  background: var(--bg);
+  background-color: var(--bg);
+  /* Petite trame de points, comme le papier d'un manga */
+  background-image: radial-gradient(rgba(27, 23, 18, 0.07) 1px, transparent 1.2px);
+  background-size: 14px 14px;
   color: var(--text);
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.4;
+}
+@media (prefers-color-scheme: dark) {
+  body { background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1.2px); }
 }
 .container {
   max-width: 1100px;
   margin: 0 auto;
   /* env(safe-area-inset-…) : laisse de la place à l'encoche de l'iPhone */
-  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
-    max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  padding: max(var(--s4), env(safe-area-inset-top)) max(var(--s4), env(safe-area-inset-right))
+    max(var(--s5), env(safe-area-inset-bottom)) max(var(--s4), env(safe-area-inset-left));
 }
 /* Évite que l'iPhone zoome ou sélectionne le texte quand on tapote le plateau */
-button, [data-square] { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-.header h1 { margin: 0; font-size: 28px; }
-.header p { margin: 4px 0 16px; color: var(--muted); }
+button, label, [data-square] { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+button { font: inherit; }
+:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; }
+
+/* En-tête : le nom en police manga */
+.header { margin-bottom: var(--s4); }
+.header h1 {
+  margin: 0;
+  font-family: var(--font-manga), Impact, sans-serif;
+  font-weight: 400;
+  font-size: 40px;
+  line-height: 1;
+  letter-spacing: 1px;
+  color: var(--green);
+  -webkit-text-stroke: 1.5px var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 3px 3px 0 var(--ink);
+}
+.header p { margin: var(--s1) 0 0; color: var(--muted); font-size: 15px; }
+
+/* Titres de section (« Les 3 meilleurs coups », « Corriger la position »…) */
+.title-manga {
+  margin: 0;
+  font-family: var(--font-manga), Impact, sans-serif;
+  font-weight: 400;
+  font-size: 22px;
+  letter-spacing: 0.5px;
+  line-height: 1.1;
+}
+
+/* --- Boutons : 3 sortes seulement ---
+   .btn          bouton normal (carte blanche, trait d'encre, ombre dure)
+   .btn-main     action principale (vert)
+   .btn-manga    petit bouton jaune (« Voir », « Revoir »)
+   Quand on appuie, le bouton "s'enfonce" : l'ombre disparaît. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
+  min-height: 44px; /* taille minimum confortable pour un doigt */
+  padding: var(--s2) var(--s3);
+  border: var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform 0.06s, box-shadow 0.06s;
+}
+.btn:active:not(:disabled) { transform: translate(3px, 3px); box-shadow: none; }
+.btn:disabled { opacity: 0.6; cursor: wait; }
+.btn-main {
+  background: var(--green);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 800;
+  min-height: 54px;
+  border-radius: var(--radius);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.25);
+}
+.btn-manga {
+  background: var(--yellow);
+  color: #111;
+  font-weight: 800;
+}
+
+/* Carte : un encadré blanc à trait d'encre */
+.card {
+  background: var(--card);
+  border: var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--s3) var(--s4);
+}

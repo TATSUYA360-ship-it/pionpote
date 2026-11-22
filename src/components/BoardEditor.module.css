@@ -1,55 +1,78 @@
+/* BoardEditor.module.css : la mise en page de l'écran principal.
+   Téléphone : une seule colonne, dans l'ordre où on s'en sert
+   (photo → Pote → plateau → qui joue + Analyser → résultats → corriger).
+   Ordinateur (900 px et plus) : plateau à gauche, Pote et résultats à droite. */
 .layout {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--s4);
 }
-.boardCol, .sideCol {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-width: 0;
-}
+/* Sur téléphone, les colonnes "s'effacent" : leurs blocs se rangent avec "order". */
+.boardCol, .sideCol { display: contents; }
+.photo { order: 1; }
+.pote { order: 2; }
+.boardBlock { order: 3; display: flex; flex-direction: column; gap: var(--s3); }
+.play { order: 4; display: flex; flex-direction: column; gap: var(--s3); }
+.results { order: 5; }
+.edit { order: 6; display: flex; flex-direction: column; gap: var(--s3); }
+
 .board {
   position: relative;
   width: 100%;
   max-width: 560px;
   touch-action: none;
+  border: 3px solid var(--ink);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
 }
-.row { display: flex; gap: 8px; flex-wrap: wrap; }
-.row button {
-  flex: 1;
-  padding: 10px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--card);
-  color: var(--text);
-  font-size: 14px;
-  cursor: pointer;
-}
+
+.hint { margin: calc(-1 * var(--s2)) 0 0; color: var(--muted); font-size: 14px; }
+
+.row { display: flex; gap: var(--s2); flex-wrap: wrap; }
+.row > button { flex: 1; }
+
+/* « Qui joue ? » en deux gros boutons côte à côte */
 .turn {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 8px 14px 12px;
-  display: flex;
-  gap: 20px;
-}
-.turn legend { padding: 0 6px; font-weight: 600; }
-.turn label { display: flex; gap: 6px; align-items: center; font-size: 16px; }
-.analyze {
-  padding: 14px;
-  font-size: 18px;
-  font-weight: 700;
+  margin: 0;
+  padding: 0;
   border: 0;
-  border-radius: 12px;
-  background: var(--accent);
-  color: #fff;
-  cursor: pointer;
+  min-width: 0;
 }
-.analyze:disabled { opacity: 0.7; cursor: wait; }
+.turnRow { display: flex; gap: var(--s2); }
+.turnLegend {
+  padding: 0;
+  margin-bottom: var(--s2);
+  font-weight: 700;
+}
+.turn label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
+  min-height: 48px;
+  border: var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+.turn label span { font-size: 22px; line-height: 1; }
+/* Le vrai rond de la case est caché, mais reste utilisable au clavier. */
+.turn input { position: absolute; opacity: 0; pointer-events: none; }
+.turn label:has(input:focus-visible) { outline: 3px solid var(--yellow); outline-offset: 2px; }
+.turnOn {
+  background: var(--yellow) !important;
+  color: #111;
+  transform: translate(3px, 3px);
+  box-shadow: none !important;
+}
 
 @media (min-width: 900px) {
-  .layout { flex-direction: row; align-items: flex-start; }
+  .layout { flex-direction: row; align-items: flex-start; gap: var(--s5); }
+  .boardCol, .sideCol { display: flex; flex-direction: column; gap: var(--s4); min-width: 0; }
   .boardCol { flex: 0 0 560px; }
-  .sideCol { flex: 1; }
+  .sideCol { flex: 1; position: sticky; top: var(--s4); }
 }
-.row .back { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }

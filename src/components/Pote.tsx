@@ -73,7 +73,7 @@ export default function Pote({ mood, text }: { mood: Mood; text: string }) {
         <circle cx="60" cy="56" r="34" className={styles.body} />
         <Face mood={mood} />
       </svg>
-      <div className={styles.bubble} aria-live="polite">
+      <div className={`${styles.bubble} ${styles["bulle_" + mood]}`} aria-live="polite">
         {text}
       </div>
     </div>

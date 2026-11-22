@@ -1,28 +1,59 @@
-.panel {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 12px 14px;
+/* AnalysisPanel.module.css : la carte des résultats (meilleurs coups + pièces en danger). */
+.panel { display: flex; flex-direction: column; gap: var(--s3); }
+.moves {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  counter-reset: coup;
 }
-.title { font-size: 16px; margin: 4px 0 8px; }
-.moves { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 4px; }
-.moves li::marker { color: var(--muted); }
-.moves li { padding: 6px; border-radius: 6px; line-height: 30px; }
-.best { background: var(--best-bg); font-weight: 600; }
-.san { display: inline-block; min-width: 70px; }
-.score { color: var(--muted); font-variant-numeric: tabular-nums; }
-.hint { font-size: 13px; color: var(--muted); margin: 8px 0; }
-.danger { margin: 0; padding-left: 20px; }
-.play {
-  float: right;
-  line-height: 1.2;
-  border: 2px solid #111;
-  background: #ffd23f;
-  color: #111;
+.moves li {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  padding: var(--s2) var(--s2) var(--s2) var(--s3);
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  counter-increment: coup;
+}
+.moves li::before {
+  content: counter(coup);
+  color: var(--muted);
   font-weight: 700;
-  border-radius: 8px;
-  padding: 4px 10px;
-  cursor: pointer;
-  box-shadow: 2px 2px 0 #111;
+  width: 1ch;
 }
-.play:active { transform: translate(2px, 2px); box-shadow: none; }
+/* Le meilleur coup : fond vert clair, comme la flèche verte du plateau */
+.best { background: var(--green-soft); border-color: var(--green) !important; }
+.best .san { color: var(--green); }
+.san { font-size: 20px; font-weight: 800; min-width: 56px; }
+.score {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  flex: 1;
+}
+.play { min-height: 38px; padding: var(--s1) var(--s3); font-size: 14px; }
+.hint { font-size: 13px; color: var(--muted); margin: 0; }
+
+.dangerTitle { color: var(--red); }
+.danger { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: var(--s2); }
+.dangerItem {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s2) var(--s3);
+  background: var(--red-soft);
+  border-left: 5px solid var(--red);
+  border-radius: 6px;
+}
+/* Nom de la case (ex : e5) dans une petite étiquette rouge */
+.square {
+  background: var(--red);
+  color: #fff;
+  font-weight: 800;
+  border-radius: 6px;
+  padding: 0 var(--s2);
+  font-variant-numeric: tabular-nums;
+}

@@ -6,10 +6,12 @@ import styles from "./PiecePalette.module.css";
 
 export type Tool = "move" | "erase" | PieceCode;
 
-const SYMBOL: Record<PieceCode, string> = {
-  wK: "♔", wQ: "♕", wR: "♖", wB: "♗", wN: "♘", wP: "♙",
-  bK: "♚", bQ: "♛", bR: "♜", bB: "♝", bN: "♞", bP: "♟",
+// On utilise le dessin "plein" pour les deux couleurs : le CSS colorie en blanc ou en noir.
+// Le petit caractère invisible \uFE0E empêche l'iPhone de transformer ♟ en émoji.
+const GLYPH: Record<string, string> = {
+  K: "♚", Q: "♛", R: "♜", B: "♝", N: "♞", P: "♟",
 };
+const symbol = (p: PieceCode) => GLYPH[p[1]] + "\uFE0E";
 // Nom de chaque pièce, accordé au féminin quand il faut (« dame blanche »).
 const NAME: Record<PieceCode, string> = {
   wK: "roi blanc", wQ: "dame blanche", wR: "tour blanche",
@@ -28,12 +30,12 @@ export default function PiecePalette({ tool, onChange }: Props) {
     <button
       key={p}
       type="button"
-      className={`${styles.piece} ${tool === p ? styles.active : ""}`}
+      className={`${styles.piece} ${p[0] === "w" ? styles.white : styles.black} ${tool === p ? styles.active : ""}`}
       onClick={() => onChange(tool === p ? "move" : p)}
       aria-pressed={tool === p}
       title={`Poser : ${NAME[p]}`}
     >
-      {SYMBOL[p]}
+      {symbol(p)}
     </button>
   );
 
@@ -44,7 +46,7 @@ export default function PiecePalette({ tool, onChange }: Props) {
       <div className={styles.row}>
         <button
           type="button"
-          className={`${styles.tool} ${tool === "move" ? styles.active : ""}`}
+          className={`btn ${styles.tool} ${tool === "move" ? styles.active : ""}`}
           onClick={() => onChange("move")}
           aria-pressed={tool === "move"}
         >
@@ -52,7 +54,7 @@ export default function PiecePalette({ tool, onChange }: Props) {
         </button>
         <button
           type="button"
-          className={`${styles.tool} ${tool === "erase" ? styles.active : ""}`}
+          className={`btn ${styles.tool} ${tool === "erase" ? styles.active : ""}`}
           onClick={() => onChange(tool === "erase" ? "move" : "erase")}
           aria-pressed={tool === "erase"}
         >

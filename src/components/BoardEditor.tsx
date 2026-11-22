@@ -209,104 +209,130 @@ export default function BoardEditor() {
 
   return (
     <div className={styles.layout}>
+      {/* Sur téléphone, les deux colonnes disparaissent et les blocs s'empilent
+          dans l'ordre choisi par "order" dans BoardEditor.module.css. */}
       <div className={styles.boardCol}>
-        <PhotoReader onStart={onPhotoStart} onRead={onPhotoRead} onError={onPhotoError} />
-        <div className={styles.board} ref={boardBoxRef}>
-          <Chessboard
-            id="editeur"
-            position={fx ? fx.fenAfter : board}
-            boardOrientation={orientation}
-            onSquareClick={onSquareClick}
-            onPieceDrop={onPieceDrop}
-            onPieceDropOffBoard={onPieceDropOffBoard}
-            dropOffBoardAction="trash"
-            onPromotionCheck={() => false}
-            arePiecesDraggable={tool === "move" && !fx}
-            customArrows={arrows}
-            customSquareStyles={squareStyles}
-            areArrowsAllowed={false}
-            animationDuration={fx ? 400 : 150}
-          />
-          {fx && <MangaFx key={fx.id} fx={fx} orientation={orientation} />}
+        <div className={styles.photo}>
+          <PhotoReader onStart={onPhotoStart} onRead={onPhotoRead} onError={onPhotoError} />
         </div>
-        {fx && (
+
+        <div className={styles.boardBlock}>
+          <div className={styles.board} ref={boardBoxRef}>
+            <Chessboard
+              id="editeur"
+              position={fx ? fx.fenAfter : board}
+              boardOrientation={orientation}
+              onSquareClick={onSquareClick}
+              onPieceDrop={onPieceDrop}
+              onPieceDropOffBoard={onPieceDropOffBoard}
+              dropOffBoardAction="trash"
+              onPromotionCheck={() => false}
+              arePiecesDraggable={tool === "move" && !fx}
+              customArrows={arrows}
+              customSquareStyles={squareStyles}
+              customLightSquareStyle={{ backgroundColor: "#f3e4c6" }}
+              customDarkSquareStyle={{ backgroundColor: "#b98a5e" }}
+              areArrowsAllowed={false}
+              animationDuration={fx ? 400 : 150}
+            />
+            {fx && <MangaFx key={fx.id} fx={fx} orientation={orientation} />}
+          </div>
+          {fx && (
+            <div className={styles.row}>
+              <button type="button" className="btn btn-manga" onClick={() => showMove(fx.uci)}>
+                🔁 Revoir
+              </button>
+              <button type="button" className="btn" onClick={backToPosition}>
+                ↩️ Revenir à ma position
+              </button>
+            </div>
+          )}
+          {fromPhoto && !fx && (
+            <div className={styles.row}>
+              <button type="button" className="btn" onClick={() => setBoard((b) => rotateBoard(b))}>
+                🔄 Les pièces sont à l&apos;envers ? Tourner le plateau
+              </button>
+            </div>
+          )}
+        </div>
+
+        <section className={`card ${styles.edit}`}>
+          <h2 className="title-manga">Corriger la position</h2>
+          <p className={styles.hint}>Touche une pièce puis une case pour la poser.</p>
+          <PiecePalette tool={tool} onChange={setTool} />
           <div className={styles.row}>
-            <button type="button" onClick={() => showMove(fx.uci)}>
-              🔁 Revoir
+            <button
+              type="button"
+              className="btn"
+              onClick={() => {
+                setBoard(fenToBoard(START_FEN));
+                setFromPhoto(false);
+              }}
+            >
+              Départ
             </button>
-            <button type="button" className={styles.back} onClick={backToPosition}>
-              ↩️ Revenir à ma position
+            <button
+              type="button"
+              className="btn"
+              onClick={() => {
+                setBoard({});
+                setFromPhoto(false);
+              }}
+            >
+              Vider
+            </button>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => setOrientation((o) => (o === "white" ? "black" : "white"))}
+            >
+              Retourner
             </button>
           </div>
-        )}
-        {fromPhoto && !fx && (
-          <div className={styles.row}>
-            <button type="button" onClick={() => setBoard((b) => rotateBoard(b))}>
-              🔄 Les pièces sont à l&apos;envers ? Tourner le plateau
-            </button>
-          </div>
-        )}
-        <PiecePalette tool={tool} onChange={setTool} />
-        <div className={styles.row}>
-          <button
-            type="button"
-            onClick={() => {
-              setBoard(fenToBoard(START_FEN));
-              setFromPhoto(false);
-            }}
-          >
-            Position de départ
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setBoard({});
-              setFromPhoto(false);
-            }}
-          >
-            Vider
-          </button>
-          <button
-            type="button"
-            onClick={() => setOrientation((o) => (o === "white" ? "black" : "white"))}
-          >
-            Retourner
-          </button>
-        </div>
+        </section>
       </div>
 
       <div className={styles.sideCol}>
-        <Pote mood={pote.mood} text={pote.text} />
+        <div className={styles.pote}>
+          <Pote mood={pote.mood} text={pote.text} />
+        </div>
 
-        <fieldset className={styles.turn}>
-          <legend>Qui joue ?</legend>
-          <label>
-            <input type="radio" name="turn" checked={turn === "w"} onChange={() => setTurn("w")} />
-            Les Blancs
-          </label>
-          <label>
-            <input type="radio" name="turn" checked={turn === "b"} onChange={() => setTurn("b")} />
-            Les Noirs
-          </label>
-        </fieldset>
+        <div className={styles.play}>
+          {/* « Qui joue ? » : deux gros boutons, celui choisi est rempli. */}
+          <fieldset className={styles.turn}>
+            <legend className={styles.turnLegend}>Qui joue ?</legend>
+            <div className={styles.turnRow}>
+            <label className={turn === "w" ? styles.turnOn : ""}>
+              <input type="radio" name="turn" checked={turn === "w"} onChange={() => setTurn("w")} />
+              <span aria-hidden>♔&#xFE0E;</span> Les Blancs
+            </label>
+            <label className={turn === "b" ? styles.turnOn : ""}>
+              <input type="radio" name="turn" checked={turn === "b"} onChange={() => setTurn("b")} />
+              <span aria-hidden>♚&#xFE0E;</span> Les Noirs
+            </label>
+            </div>
+          </fieldset>
 
-        <button
-          type="button"
-          className={styles.analyze}
-          onClick={analyze}
-          disabled={status === "loading"}
-        >
-          {status === "loading" ? "Analyse en cours…" : "Analyser"}
-        </button>
+          <button
+            type="button"
+            className="btn btn-main"
+            onClick={analyze}
+            disabled={status === "loading"}
+          >
+            {status === "loading" ? "Analyse en cours…" : "🔍 Analyser"}
+          </button>
+        </div>
 
         {analysis && (
-          <AnalysisPanel
-            fen={analysis.fen}
-            turn={analysis.turn}
-            lines={analysis.lines}
-            danger={analysis.danger}
-            onShowMove={showMove}
-          />
+          <div className={styles.results}>
+            <AnalysisPanel
+              fen={analysis.fen}
+              turn={analysis.turn}
+              lines={analysis.lines}
+              danger={analysis.danger}
+              onShowMove={showMove}
+            />
+          </div>
         )}
       </div>
     </div>

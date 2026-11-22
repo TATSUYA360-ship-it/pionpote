@@ -54,7 +54,7 @@ export default function PhotoReader({ onStart, onRead, onError }: Props) {
     <div className={styles.box}>
       <button
         type="button"
-        className={styles.main}
+        className="btn btn-main"
         disabled={busy}
         onClick={() => cameraRef.current?.click()}
       >
@@ -62,7 +62,7 @@ export default function PhotoReader({ onStart, onRead, onError }: Props) {
       </button>
       <button
         type="button"
-        className={styles.secondary}
+        className="btn"
         disabled={busy}
         onClick={() => galleryRef.current?.click()}
       >

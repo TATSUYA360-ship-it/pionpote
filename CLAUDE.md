@@ -29,6 +29,11 @@ augmenter `CACHE` dans `public/sw.js`. Plus tard, éventuellement Capacitor pour
   variable d'environnement), jamais dans le code du navigateur.
 - Étape 3 (photo) et étape 4 (chat) : à faire.
 
+## Design
+Avant de toucher à l'interface, lire `DESIGN.md` (le « style PionPote ») et le respecter :
+variables de `src/app/globals.css`, boutons `.btn` / `.btn-main` / `.btn-manga`, cartes `.card`,
+titres `.title-manga`. Montrer des captures téléphone avant/après.
+
 ## Règles de travail
 - Faire un commit git à chaque fois qu'une partie marche.
 - Vérifier avec `npm run lint` et `npm run build` avant de dire que c'est fini.

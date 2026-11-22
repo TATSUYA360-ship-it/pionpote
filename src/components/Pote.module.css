@@ -4,7 +4,7 @@
   gap: 12px;
 }
 .pote {
-  width: 84px;
+  width: 72px;
   flex-shrink: 0;
 }
 .body {
@@ -27,25 +27,36 @@
 .panique { animation: shake 0.4s ease 2; }
 .pensif { transform: rotate(-4deg); }
 
+/* Bulle de BD : trait d'encre, ombre dure, petite pointe vers Pote.
+   Sa couleur change avec l'humeur de Pote. */
 .bubble {
+  --bulle: var(--card);
   position: relative;
   flex: 1;
-  background: var(--card);
-  border: 2px solid var(--ink);
-  border-radius: 14px;
-  padding: 10px 14px;
+  background: var(--bulle);
+  border: var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--s3) var(--s4);
   font-size: 15px;
-  line-height: 1.4;
+  line-height: 1.45;
 }
+.bulle_content { --bulle: var(--green-soft); }
+.bulle_panique { --bulle: var(--red-soft); }
+.bulle_pensif { --bulle: var(--blue-soft); }
+/* La pointe : un petit carré tourné, avec le même trait que la bulle */
 .bubble::before {
   content: "";
   position: absolute;
-  left: -10px;
+  left: -9px;
   top: 50%;
-  margin-top: -8px;
-  border: 8px solid transparent;
-  border-right-color: var(--ink);
-  border-left: 0;
+  width: 14px;
+  height: 14px;
+  margin-top: -7px;
+  background: var(--bulle);
+  border-left: var(--line);
+  border-bottom: var(--line);
+  transform: rotate(45deg);
 }
 
 @keyframes hop {
