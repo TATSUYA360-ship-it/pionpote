@@ -108,7 +108,7 @@ export default function BoardEditor() {
       text:
         "Voilà ce que j'ai vu ! Compare avec ton vrai échiquier et corrige si besoin " +
         "(touche une pièce en bas pour la poser, ou fais-la glisser). " +
-        (doutes ? `Vérifie surtout ceci : ${doutes} ` : "") +
+        (doutes ? `Vérifie surtout ceci : ${doutes.replace(/[.!\s]*$/, "")}. ` : "") +
         "Ensuite, choisis qui joue et appuie sur « Analyser ».",
     });
   };
