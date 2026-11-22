@@ -1,6 +1,6 @@
 /* BoardEditor.module.css : la mise en page de l'écran principal.
    Téléphone : une seule colonne, dans l'ordre où on s'en sert
-   (photo → Pote → plateau → qui joue + Analyser → résultats → corriger).
+   (photo → Pote → plateau → qui joue + Analyser → historique de la partie → résultats → corriger).
    Ordinateur (900 px et plus) : plateau à gauche, Pote et résultats à droite. */
 .layout {
   display: flex;
@@ -13,8 +13,12 @@
 .pote { order: 2; }
 .boardBlock { order: 3; display: flex; flex-direction: column; gap: var(--s3); }
 .play { order: 4; display: flex; flex-direction: column; gap: var(--s3); }
-.results { order: 5; }
-.edit { order: 6; display: flex; flex-direction: column; gap: var(--s3); }
+.partie { order: 5; display: flex; flex-direction: column; gap: var(--s3); }
+/* Une fois la partie commencée, les boutons photo descendent sous la liste des coups :
+   le plateau reste en haut de l'écran, plus besoin de faire défiler à chaque coup. */
+.photoBas { order: 6; }
+.results { order: 7; }
+.edit { order: 8; display: flex; flex-direction: column; gap: var(--s3); }
 
 .board {
   position: relative;
@@ -73,3 +77,25 @@
   .boardCol { flex: 0 0 560px; }
   .sideCol { flex: 1; position: sticky; top: var(--s4); }
 }
+
+/* Mode partie : « Aux Blancs de jouer », écrit au feutre */
+.aQui {
+  margin: 0;
+  font-family: var(--font-feutre), cursive;
+  font-size: 19px;
+}
+
+/* La liste des coups de la partie : « 1. e4 e5 », un tour par ligne, sur 2 colonnes */
+.coups {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s1) var(--s4);
+}
+.coups li { display: flex; gap: var(--s2); align-items: baseline; }
+.numero { color: var(--muted); font-size: 14px; min-width: 3ch; }
+.coup, .dernierCoup { font-weight: 700; min-width: 5ch; }
+/* Le dernier coup joué est surligné en jaune, comme ses cases sur le plateau */
+.dernierCoup { background: var(--yellow); color: #1f1b16; border-radius: 4px; padding: 0 var(--s1); }

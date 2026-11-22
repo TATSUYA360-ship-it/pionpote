@@ -36,7 +36,7 @@ export function uciToSan(fen: string, uci: string): string {
 }
 
 // En français : R = roi, D = dame, T = tour, F = fou, C = cavalier.
-function toFrenchSan(san: string): string {
+export function toFrenchSan(san: string): string {
   const map: Record<string, string> = { K: "R", Q: "D", R: "T", B: "F", N: "C" };
   return san.replace(/[KQRBN]/g, (c) => map[c]);
 }

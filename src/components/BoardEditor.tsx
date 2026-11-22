@@ -6,6 +6,9 @@
 // - l'affichage : flèche verte, cases rouges, liste des coups, Pote
 // - l'explication de Pote (demandée au serveur, /api/expliquer)
 // - la lecture d'une photo de l'échiquier (PhotoReader), puis la correction à la main
+// - le suivi de la partie : en mode « partie », on joue les vrais coups sur le plateau
+//   (touche une pièce puis sa case), le camp qui joue change tout seul, l'historique
+//   des coups est gardé (avec « Annuler le coup ») et Pote analyse après chaque coup.
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import { Chess, type Square } from "chess.js";
@@ -22,7 +25,7 @@ import {
 } from "@/lib/position";
 import { findPiecesInDanger, type DangerPiece } from "@/lib/danger";
 import { StockfishEngine, type EngineLine } from "@/lib/stockfish";
-import { poteReaction, type Mood } from "@/lib/evaluation";
+import { poteReaction, toFrenchSan, type Mood } from "@/lib/evaluation";
 import { calculerFaits, explicationSimple, menaceAdverse } from "@/lib/faits";
 import PiecePalette, { type Tool } from "./PiecePalette";
 import AnalysisPanel from "./AnalysisPanel";
@@ -36,6 +39,17 @@ import styles from "./BoardEditor.module.css";
 type Analysis = { fen: string; turn: Color; lines: EngineLine[]; danger: DangerPiece[]; menace: string | null };
 type Status = "idle" | "loading" | "done" | "error";
 
+// « partie » : on joue les coups de la vraie partie. « edition » : on corrige la position à la main.
+type Mode = "partie" | "edition";
+// La partie : toutes les positions (fens[0] = départ) et les coups joués entre elles.
+type Partie = { fens: string[]; sans: string[]; coups: { from: Square; to: Square }[] };
+const nouvellePartie = (fen: string): Partie => ({ fens: [fen], sans: [], coups: [] });
+const NOM_CAMP: Record<Color, string> = { w: "Blancs", b: "Noirs" };
+
+const ACCUEIL =
+  "Salut, moi c'est Pote\u00a0! Joue les coups de ta partie ici\u00a0: touche une pièce, puis la case où elle va. " +
+  "Je t'explique après chaque coup. Si ta partie a déjà commencé, prends ton échiquier en photo.";
+
 export default function BoardEditor() {
   const [board, setBoard] = useState<BoardMap>(() => fenToBoard(START_FEN));
   const [turn, setTurn] = useState<Color>("w");
@@ -43,10 +57,16 @@ export default function BoardEditor() {
   const [orientation, setOrientation] = useState<"white" | "black">("white");
   const [status, setStatus] = useState<Status>("idle");
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
-  const [pote, setPote] = useState<{ mood: Mood; text: string }>({
-    mood: "neutre",
-    text: "Salut, moi c'est Pote ! Prends ton échiquier en photo (ou place les pièces à la main), choisis qui joue, puis appuie sur «\u00a0Analyser\u00a0».",
-  });
+  const [pote, setPote] = useState<{ mood: Mood; text: string }>({ mood: "neutre", text: ACCUEIL });
+
+  const [mode, setMode] = useState<Mode>("partie");
+  const [partie, setPartie] = useState<Partie>(() => nouvellePartie(START_FEN));
+  // La pièce touchée en mode partie (on attend qu'on touche la case d'arrivée).
+  const [choisie, setChoisie] = useState<Square | null>(null);
+  // Mis à true quand on joue ou annule un coup : l'analyse se lance toute seule.
+  const analyserApresRef = useRef(false);
+  const fenPartie = partie.fens[partie.fens.length - 1];
+  const tourPartie = fenPartie.split(" ")[1] as Color;
 
   // L'explication de la position analysée (pour la réafficher après une animation).
   const explicationRef = useRef<{ mood: Mood; text: string } | null>(null);
@@ -69,20 +89,94 @@ export default function BoardEditor() {
   useEffect(() => () => engineRef.current?.terminate(), []);
 
   // Toute modification de la position efface l'ancienne analyse.
-  const fen = useMemo(() => boardToFen(board, turn), [board, turn]);
+  const fenEdition = useMemo(() => boardToFen(board, turn), [board, turn]);
+  const fen = mode === "partie" ? fenPartie : fenEdition;
   useEffect(() => {
     analyseIdRef.current += 1;
     explicationRef.current = null;
     setAnalysis(null);
     setFx(null);
-    setStatus((s) => (s === "loading" ? s : "idle"));
+    setChoisie(null);
+    setStatus("idle");
+  }, [fen]);
+
+  // Après un coup joué (ou annulé), Pote analyse la nouvelle position tout seul.
+  useEffect(() => {
+    if (!analyserApresRef.current) return;
+    analyserApresRef.current = false;
+    analyze();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fen]);
 
   const updateBoard = (fn: (b: BoardMap) => BoardMap) => setBoard((b) => fn({ ...b }));
 
+  // --- Mode partie : jouer les coups ---
+  // Les cases où la pièce touchée peut aller (petits ronds sur le plateau).
+  const cibles = useMemo(() => {
+    if (mode !== "partie" || !choisie) return [] as Square[];
+    const chess = new Chess(fenPartie, { skipValidation: true });
+    return chess.moves({ square: choisie, verbose: true }).map((m) => m.to as Square);
+  }, [mode, choisie, fenPartie]);
+
+  // Joue un coup s'il est permis par les règles. Renvoie false sinon.
+  // Un pion qui arrive au bout devient une dame.
+  const jouerCoup = (from: Square, to: Square): boolean => {
+    const chess = new Chess(fenPartie, { skipValidation: true });
+    let san: string;
+    try {
+      san = chess.move({ from, to, promotion: "q" }).san;
+    } catch {
+      return false;
+    }
+    analyserApresRef.current = true;
+    setPartie((p) => ({
+      fens: [...p.fens, chess.fen()],
+      sans: [...p.sans, toFrenchSan(san)],
+      coups: [...p.coups, { from, to }],
+    }));
+    setChoisie(null);
+    return true;
+  };
+
+  const annulerCoup = () => {
+    if (partie.sans.length === 0) return;
+    analyserApresRef.current = true;
+    setPartie((p) => ({ fens: p.fens.slice(0, -1), sans: p.sans.slice(0, -1), coups: p.coups.slice(0, -1) }));
+  };
+
+  const recommencer = () => {
+    setPartie(nouvellePartie(START_FEN));
+    setMode("partie");
+    setFromPhoto(false);
+    setOrientation("white");
+    setPote({ mood: "neutre", text: "Nouvelle partie ! Les Blancs commencent : touche une pièce, puis sa case." });
+  };
+
+  // Passe en mode correction, en partant de la position actuelle de la partie.
+  const corriger = () => {
+    setBoard(fenToBoard(fenPartie));
+    setTurn(tourPartie);
+    setTool("move");
+    setMode("edition");
+    setPote({
+      mood: "neutre",
+      text: "Arrange les pièces comme sur ton vrai échiquier, choisis qui joue, puis appuie sur « Analyser » pour reprendre la partie.",
+    });
+  };
+
   // --- Interactions avec le plateau ---
   const onSquareClick = (square: Square) => {
-    if (tool === "move" || fx) return;
+    if (fx) return;
+    if (mode === "partie") {
+      if (choisie && cibles.includes(square)) {
+        jouerCoup(choisie, square);
+        return;
+      }
+      const piece = new Chess(fenPartie, { skipValidation: true }).get(square);
+      setChoisie(piece && piece.color === tourPartie && square !== choisie ? square : null);
+      return;
+    }
+    if (tool === "move") return;
     updateBoard((b) => {
       if (tool === "erase") delete b[square];
       else b[square] = tool;
@@ -92,6 +186,7 @@ export default function BoardEditor() {
 
   const onPieceDrop = (from: Square, to: Square, piece: string) => {
     if (from === to) return false;
+    if (mode === "partie") return jouerCoup(from, to);
     updateBoard((b) => {
       delete b[from];
       b[to] = piece as PieceCode;
@@ -101,6 +196,7 @@ export default function BoardEditor() {
   };
 
   const onPieceDropOffBoard = (from: Square) => {
+    if (mode === "partie") return;
     updateBoard((b) => {
       delete b[from];
       return b;
@@ -115,6 +211,8 @@ export default function BoardEditor() {
 
   const onPhotoRead = (rows: string[], doutes: string) => {
     setBoard(rowsToBoard(rows));
+    setTool("move");
+    setMode("edition");
     setOrientation("white");
     setFromPhoto(true);
     setPote({
@@ -123,7 +221,7 @@ export default function BoardEditor() {
         "Voilà ce que j'ai vu ! Compare avec ton vrai échiquier et corrige si besoin " +
         "(touche une pièce en bas pour la poser, ou fais-la glisser). " +
         (doutes ? `Vérifie surtout ceci : ${doutes.replace(/[.!\s]*$/, "")}. ` : "") +
-        "Ensuite, choisis qui joue et appuie sur «\u00a0Analyser\u00a0».",
+        "Ensuite, choisis qui joue et appuie sur «\u00a0Analyser\u00a0». Après, tu pourras jouer la suite de la partie ici.",
     });
   };
 
@@ -133,17 +231,40 @@ export default function BoardEditor() {
 
   // --- Analyse ---
   const analyze = async () => {
-    const check = validatePosition(board, turn);
-    if (!check.ok) {
-      setStatus("error");
-      setPote({ mood: "pensif", text: check.message });
-      return;
+    let fenAnalyse: string;
+    let camp: Color;
+    if (mode === "partie") {
+      fenAnalyse = fenPartie;
+      camp = tourPartie;
+    } else {
+      const check = validatePosition(board, turn);
+      if (!check.ok) {
+        setStatus("error");
+        setPote({ mood: "pensif", text: check.message });
+        return;
+      }
+      fenAnalyse = check.fen;
+      camp = turn;
+      // La position est bonne : la partie reprend à partir d'elle.
+      // Si rien n'a changé (mêmes pièces, même camp), on garde la liste des coups.
+      const pareil = (f: string) => f.split(" ").slice(0, 2).join(" ");
+      setMode("partie");
+      if (pareil(check.fen) === pareil(fenPartie)) {
+        // L'analyse se lancera toute seule une fois revenu à la partie.
+        if (fenPartie !== fenEdition) {
+          analyserApresRef.current = true;
+          return;
+        }
+      } else {
+        setPartie(nouvellePartie(check.fen));
+      }
     }
 
-    const chess = new Chess(check.fen, { skipValidation: true });
+    const chess = new Chess(fenAnalyse, { skipValidation: true });
     if (chess.isCheckmate()) {
       setStatus("error");
-      setPote({ mood: "panique", text: "C'est échec et mat ! La partie est finie." });
+      const gagnant = NOM_CAMP[camp === "w" ? "b" : "w"];
+      setPote({ mood: "content", text: `Échec et mat ! Les ${gagnant} gagnent la partie.` });
       return;
     }
     if (chess.isStalemate()) {
@@ -152,18 +273,22 @@ export default function BoardEditor() {
       return;
     }
 
+    // Numéro de cette analyse : si la position change pendant le calcul, on jette le résultat.
+    const id = analyseIdRef.current;
     setStatus("loading");
     setPote({ mood: "pensif", text: "Hmm, je réfléchis…" });
     try {
       engineRef.current ??= new StockfishEngine();
-      const result = await engineRef.current.analyze(check.fen, 15);
-      const danger = findPiecesInDanger(check.fen, turn);
-      const menace = menaceAdverse(check.fen, turn)?.uci ?? null;
-      setAnalysis({ fen: check.fen, turn, lines: result.lines, danger, menace });
+      const result = await engineRef.current.analyze(fenAnalyse, 15);
+      if (id !== analyseIdRef.current) return;
+      const danger = findPiecesInDanger(fenAnalyse, camp);
+      const menace = menaceAdverse(fenAnalyse, camp)?.uci ?? null;
+      setAnalysis({ fen: fenAnalyse, turn: camp, lines: result.lines, danger, menace });
       setStatus("done");
-      expliquer(check.fen, turn, result.lines);
+      expliquer(fenAnalyse, camp, result.lines);
     } catch (err) {
       console.error(err);
+      if (id !== analyseIdRef.current) return;
       setStatus("error");
       setPote({ mood: "panique", text: "Oups, le moteur n'a pas répondu. Recharge la page et réessaie." });
     }
@@ -251,19 +376,42 @@ export default function BoardEditor() {
     squareStyles[fx.from] = { background: "rgba(255, 215, 0, 0.45)" };
     squareStyles[fx.to] = { background: "rgba(255, 215, 0, 0.6)" };
   } else {
+    if (mode === "partie") {
+      // Le dernier coup joué : ses deux cases en jaune pâle.
+      const dernier = partie.coups[partie.coups.length - 1];
+      if (dernier) {
+        squareStyles[dernier.from] = { background: "rgba(255, 215, 0, 0.3)" };
+        squareStyles[dernier.to] = { background: "rgba(255, 215, 0, 0.4)" };
+      }
+      // La pièce touchée, et des petits ronds sur les cases où elle peut aller.
+      if (choisie) squareStyles[choisie] = { background: "rgba(255, 215, 0, 0.6)" };
+      cibles.forEach((sq) => {
+        squareStyles[sq] = {
+          ...squareStyles[sq],
+          backgroundImage: "radial-gradient(circle, rgba(27,23,18,0.35) 18%, transparent 21%)",
+        };
+      });
+    }
     analysis?.danger.forEach((d) => {
       squareStyles[d.square] = {
+        ...squareStyles[d.square],
         background: "radial-gradient(circle, rgba(230,40,40,0.85) 45%, rgba(230,40,40,0.35) 75%)",
       };
     });
   }
+
+  // Les coups de la partie, rangés par paires : « 1. e4 e5 », « 2. Cf3 Cc6 »…
+  // Si la partie a commencé avec les Noirs (photo), le premier coup blanc est « … ».
+  const coupsAffiches = partie.fens[0].split(" ")[1] === "b" ? ["…", ...partie.sans] : partie.sans;
+  const paires: string[][] = [];
+  for (let i = 0; i < coupsAffiches.length; i += 2) paires.push(coupsAffiches.slice(i, i + 2));
 
   return (
     <div className={styles.layout}>
       {/* Sur téléphone, les deux colonnes disparaissent et les blocs s'empilent
           dans l'ordre choisi par "order" dans BoardEditor.module.css. */}
       <div className={styles.boardCol}>
-        <div className={styles.photo}>
+        <div className={`${styles.photo} ${mode === "partie" && partie.sans.length > 0 ? styles.photoBas : ""}`}>
           <PhotoReader onStart={onPhotoStart} onRead={onPhotoRead} onError={onPhotoError} />
         </div>
 
@@ -271,14 +419,15 @@ export default function BoardEditor() {
           <div className={styles.board} ref={boardBoxRef}>
             <Chessboard
               id="editeur"
-              position={fx ? fx.fenAfter : board}
+              position={fx ? fx.fenAfter : mode === "partie" ? fenPartie : board}
               boardOrientation={orientation}
               onSquareClick={onSquareClick}
               onPieceDrop={onPieceDrop}
               onPieceDropOffBoard={onPieceDropOffBoard}
-              dropOffBoardAction="trash"
+              dropOffBoardAction={mode === "partie" ? "snapback" : "trash"}
               onPromotionCheck={() => false}
-              arePiecesDraggable={tool === "move" && !fx}
+              arePiecesDraggable={!fx && (mode === "partie" || tool === "move")}
+              isDraggablePiece={({ piece }) => mode === "edition" || piece[0] === tourPartie}
               customArrows={arrows}
               customSquareStyles={squareStyles}
               customLightSquareStyle={{ backgroundColor: "#f3e4c6" }}
@@ -298,49 +447,102 @@ export default function BoardEditor() {
               </button>
             </div>
           )}
-          {fromPhoto && !fx && (
+          {mode === "partie" && !fx && (
+            <div className={styles.row}>
+              <button type="button" className="btn" onClick={annulerCoup} disabled={partie.sans.length === 0}>
+                Annuler le coup
+              </button>
+              <button
+                type="button"
+                className="btn"
+                onClick={() => setOrientation((o) => (o === "white" ? "black" : "white"))}
+              >
+                Retourner
+              </button>
+            </div>
+          )}
+          {mode === "edition" && fromPhoto && !fx && (
             <div className={styles.row}>
               <button type="button" className="btn" onClick={() => setBoard((b) => rotateBoard(b))}>
-                Pièces à l&apos;envers ? Tourner le plateau
+                Pièces à l&apos;envers ? Tourner le plateau
               </button>
             </div>
           )}
         </div>
 
-        <section className={`card ${styles.edit}`}>
-          <h2 className="titre">Corriger la position</h2>
-          <p className={styles.hint}>Touche une pièce puis une case pour la poser.</p>
-          <PiecePalette tool={tool} onChange={setTool} />
-          <div className={styles.row}>
-            <button
-              type="button"
-              className="btn"
-              onClick={() => {
-                setBoard(fenToBoard(START_FEN));
-                setFromPhoto(false);
-              }}
-            >
-              Départ
+        {mode === "partie" ? (
+          <section className={`card ${styles.partie}`}>
+            <h2 className="titre">La partie</h2>
+            {paires.length === 0 ? (
+              <p className={styles.hint}>Aucun coup pour l&apos;instant.</p>
+            ) : (
+              <ol className={styles.coups}>
+                {paires.map((paire, i) => (
+                  <li key={i}>
+                    <span className={styles.numero}>{i + 1}.</span>
+                    {paire.map((san, j) => (
+                      <span
+                        key={j}
+                        className={i * 2 + j === coupsAffiches.length - 1 ? styles.dernierCoup : styles.coup}
+                      >
+                        {san}
+                      </span>
+                    ))}
+                  </li>
+                ))}
+              </ol>
+            )}
+            <p className={styles.hint}>
+              La position ne correspond plus à ton échiquier ? Reprends-le en photo (boutons juste en dessous), ou corrige-la à la main.
+            </p>
+            <div className={styles.row}>
+              <button type="button" className="btn" onClick={corriger}>
+                Corriger la position
+              </button>
+              <button type="button" className="btn" onClick={recommencer}>
+                Nouvelle partie
+              </button>
+            </div>
+          </section>
+        ) : (
+          <section className={`card ${styles.edit}`}>
+            <h2 className="titre">Corriger la position</h2>
+            <p className={styles.hint}>Touche une pièce puis une case pour la poser.</p>
+            <PiecePalette tool={tool} onChange={setTool} />
+            <div className={styles.row}>
+              <button
+                type="button"
+                className="btn"
+                onClick={() => {
+                  setBoard(fenToBoard(START_FEN));
+                  setFromPhoto(false);
+                }}
+              >
+                Départ
+              </button>
+              <button
+                type="button"
+                className="btn"
+                onClick={() => {
+                  setBoard({});
+                  setFromPhoto(false);
+                }}
+              >
+                Vider
+              </button>
+              <button
+                type="button"
+                className="btn"
+                onClick={() => setOrientation((o) => (o === "white" ? "black" : "white"))}
+              >
+                Retourner
+              </button>
+            </div>
+            <button type="button" className="btn" onClick={() => setMode("partie")}>
+              Laisser comme avant et revenir à la partie
             </button>
-            <button
-              type="button"
-              className="btn"
-              onClick={() => {
-                setBoard({});
-                setFromPhoto(false);
-              }}
-            >
-              Vider
-            </button>
-            <button
-              type="button"
-              className="btn"
-              onClick={() => setOrientation((o) => (o === "white" ? "black" : "white"))}
-            >
-              Retourner
-            </button>
-          </div>
-        </section>
+          </section>
+        )}
       </div>
 
       <div className={styles.sideCol}>
@@ -349,7 +551,13 @@ export default function BoardEditor() {
         </div>
 
         <div className={styles.play}>
-          {/* « Qui joue ? » : deux gros boutons, celui choisi est rempli. */}
+          {mode === "partie" ? (
+            // En partie, le camp qui joue change tout seul après chaque coup.
+            <p className={styles.aQui}>
+              Aux {NOM_CAMP[tourPartie]} de jouer
+            </p>
+          ) : (
+          /* « Qui joue ? » : deux gros boutons, celui choisi est rempli. */
           <fieldset className={styles.turn}>
             <legend className={styles.turnLegend}>Qui joue ?</legend>
             <div className={styles.turnRow}>
@@ -363,15 +571,20 @@ export default function BoardEditor() {
             </label>
             </div>
           </fieldset>
+          )}
 
-          <button
-            type="button"
-            className="btn btn-main"
-            onClick={analyze}
-            disabled={status === "loading"}
-          >
-            {status === "loading" ? "Analyse en cours…" : "Analyser"}
-          </button>
+          {/* En partie, l'analyse se lance toute seule après chaque coup : le bouton
+              ne sert qu'avant le premier coup, ou pour relancer. */}
+          {!(mode === "partie" && status === "done") && (
+            <button
+              type="button"
+              className="btn btn-main"
+              onClick={analyze}
+              disabled={status === "loading"}
+            >
+              {status === "loading" ? "Analyse en cours…" : "Analyser"}
+            </button>
+          )}
         </div>
 
         {analysis && (

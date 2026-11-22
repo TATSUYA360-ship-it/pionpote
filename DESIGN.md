@@ -50,7 +50,7 @@ Pas d'étiquette, pas de contour, pas d'ombre sur le logo : l'utilisateur trouva
   Pote parle **toujours** juste au-dessus du plateau sur téléphone.
 
 ## Ordre de l'écran sur téléphone
-Photo → Pote → plateau → « Qui joue ? » + Analyser → résultats → corriger la position.
+Photo → Pote → plateau (+ « Annuler le coup ») → « Qui joue ? » ou « Aux Blancs de jouer » + Analyser → la partie (liste des coups) → résultats → corriger la position.
 (Réglé avec `order` dans `BoardEditor.module.css`.)
 
 ## Animations

@@ -1,7 +1,7 @@
 // sw.js : le "service worker". C'est un petit programme que le téléphone garde
 // en mémoire. Il enregistre les fichiers de l'appli (dont le moteur Stockfish)
 // pour que PionPote s'ouvre vite et marche même sans connexion.
-const CACHE = "pionpote-v6";
+const CACHE = "pionpote-v7";
 const PRECACHE = [
   "/",
   "/stockfish/stockfish-18-lite-single.js",
