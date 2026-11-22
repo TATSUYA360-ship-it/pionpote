@@ -54,8 +54,16 @@ Photo → Pote → plateau (+ « Annuler le coup ») → « Qui joue ? » ou « 
 (Réglé avec `order` dans `BoardEditor.module.css`.)
 
 ## Animations
-Style manga (traits de vitesse, BAM !, secousse) seulement pour montrer un coup. Toujours respecter
-`prefers-reduced-motion`. Pas d'animation décorative ailleurs.
+Style manga **au trait de feutre** (traits de vitesse dessinés, BAM !, secousse) seulement pour montrer un coup :
+- « Voir » un coup proposé : version complète (la pièce glisse en 0,4 s, puis l'impact).
+- Pendant la partie, après chaque vrai coup : version rapide (traînée + petits traits d'atterrissage ;
+  mot et éclair seulement pour prise, échec, mat, roque, promotion).
+- Onomatopées : contour d'encre, **sans ombre**.
+
+Pote est le seul autre élément animé : il saute (content), tremble (paniqué), cligne des yeux (calme),
+et **réfléchit** : il scrute le plateau pendant le calcul de Stockfish, puis lève les yeux avec des
+bulles de pensée pendant qu'on attend l'explication (prop `reflexion` de `Pote`, trois petits points dans la bulle).
+Toujours respecter `prefers-reduced-motion` (tout s'arrête, le texte reste). Pas d'autre animation décorative.
 
 ## Pièges iPhone
 - Dans les textes, mettre une espace insécable (`\u00a0`) avant ! ? : » et après « pour éviter un signe seul en début de ligne.

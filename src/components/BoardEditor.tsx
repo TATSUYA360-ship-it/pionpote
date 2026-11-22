@@ -29,7 +29,7 @@ import { poteReaction, toFrenchSan, type Mood } from "@/lib/evaluation";
 import { calculerFaits, explicationSimple, menaceAdverse } from "@/lib/faits";
 import PiecePalette, { type Tool } from "./PiecePalette";
 import AnalysisPanel from "./AnalysisPanel";
-import Pote from "./Pote";
+import Pote, { type Reflexion } from "./Pote";
 import MangaFx from "./MangaFx";
 import PhotoReader from "./PhotoReader";
 import { buildMoveFx, type MoveFx } from "@/lib/moveFx";
@@ -45,6 +45,8 @@ type Mode = "partie" | "edition";
 type Partie = { fens: string[]; sans: string[]; coups: { from: Square; to: Square }[] };
 const nouvellePartie = (fen: string): Partie => ({ fens: [fen], sans: [], coups: [] });
 const NOM_CAMP: Record<Color, string> = { w: "Blancs", b: "Noirs" };
+// Ce que dit Pote. « reflexion » : Pote est en train de réfléchir (animation), sinon rien.
+type Bulle = { mood: Mood; text: string; reflexion?: Reflexion };
 
 const ACCUEIL =
   "Salut, moi c'est Pote\u00a0! Joue les coups de ta partie ici\u00a0: touche une pièce, puis la case où elle va. " +
@@ -57,7 +59,7 @@ export default function BoardEditor() {
   const [orientation, setOrientation] = useState<"white" | "black">("white");
   const [status, setStatus] = useState<Status>("idle");
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
-  const [pote, setPote] = useState<{ mood: Mood; text: string }>({ mood: "neutre", text: ACCUEIL });
+  const [pote, setPote] = useState<Bulle>({ mood: "neutre", text: ACCUEIL });
 
   const [mode, setMode] = useState<Mode>("partie");
   const [partie, setPartie] = useState<Partie>(() => nouvellePartie(START_FEN));
@@ -84,6 +86,21 @@ export default function BoardEditor() {
     fxRef.current = fx;
   }, [fx]);
 
+  // Petit effet manga montré juste après un vrai coup joué pendant la partie
+  // (il ne bloque rien : il s'efface tout seul au bout d'1,5 s).
+  const [fxJeu, setFxJeu] = useState<MoveFx | null>(null);
+  const fxJeuTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (fxJeuTimer.current) clearTimeout(fxJeuTimer.current);
+  }, []);
+  const montrerCoupJoue = (next: MoveFx | null) => {
+    if (fxJeuTimer.current) clearTimeout(fxJeuTimer.current);
+    setFxJeu(next);
+    if (!next) return;
+    fxJeuTimer.current = setTimeout(() => setFxJeu(null), next.kind === "mate" ? 2200 : 1500);
+    secouer(next, 120);
+  };
+
   // Le moteur est créé une seule fois, au premier clic sur "Analyser".
   const engineRef = useRef<StockfishEngine | null>(null);
   useEffect(() => () => engineRef.current?.terminate(), []);
@@ -98,6 +115,8 @@ export default function BoardEditor() {
     setFx(null);
     setChoisie(null);
     setStatus("idle");
+    // Si Pote réfléchissait sur l'ancienne position, il arrête.
+    setPote((p) => (p.reflexion ? { mood: "neutre", text: "La position a changé. Appuie sur «\u00a0Analyser\u00a0» quand tu es prêt." } : p));
   }, [fen]);
 
   // Après un coup joué (ou annulé), Pote analyse la nouvelle position tout seul.
@@ -123,11 +142,16 @@ export default function BoardEditor() {
   const jouerCoup = (from: Square, to: Square): boolean => {
     const chess = new Chess(fenPartie, { skipValidation: true });
     let san: string;
+    let uci: string;
     try {
-      san = chess.move({ from, to, promotion: "q" }).san;
+      const coup = chess.move({ from, to, promotion: "q" });
+      san = coup.san;
+      uci = coup.from + coup.to + (coup.promotion ?? "");
     } catch {
       return false;
     }
+    // L'effet manga du coup (traînée, BAM !, ÉCHEC !…), en version rapide.
+    montrerCoupJoue(buildMoveFx(fenPartie, uci));
     analyserApresRef.current = true;
     setPartie((p) => ({
       fens: [...p.fens, chess.fen()],
@@ -140,6 +164,7 @@ export default function BoardEditor() {
 
   const annulerCoup = () => {
     if (partie.sans.length === 0) return;
+    montrerCoupJoue(null);
     analyserApresRef.current = true;
     setPartie((p) => ({ fens: p.fens.slice(0, -1), sans: p.sans.slice(0, -1), coups: p.coups.slice(0, -1) }));
   };
@@ -206,7 +231,7 @@ export default function BoardEditor() {
   // --- Photo de l'échiquier ---
   const onPhotoStart = () => {
     setFx(null);
-    setPote({ mood: "pensif", text: "Je regarde ta photo… ça peut prendre jusqu'à une minute." });
+    setPote({ mood: "pensif", text: "Je regarde ta photo… ça peut prendre jusqu'à une minute.", reflexion: "calcul" });
   };
 
   const onPhotoRead = (rows: string[], doutes: string) => {
@@ -276,7 +301,7 @@ export default function BoardEditor() {
     // Numéro de cette analyse : si la position change pendant le calcul, on jette le résultat.
     const id = analyseIdRef.current;
     setStatus("loading");
-    setPote({ mood: "pensif", text: "Hmm, je réfléchis…" });
+    setPote({ mood: "pensif", text: "Hmm, je réfléchis…", reflexion: "calcul" });
     try {
       engineRef.current ??= new StockfishEngine();
       const result = await engineRef.current.analyze(fenAnalyse, 15);
@@ -306,7 +331,11 @@ export default function BoardEditor() {
       setPote(poteReaction(lines[0]));
       return;
     }
-    setPote({ mood: "pensif", text: "J'ai trouvé le bon coup (la flèche verte). Je cherche comment te l'expliquer…" });
+    setPote({
+      mood: "pensif",
+      text: "J'ai trouvé le bon coup (la flèche verte). Je cherche comment te l'expliquer…",
+      reflexion: "explication",
+    });
     let resultat = secours;
     try {
       const res = await fetch("/api/expliquer", {
@@ -323,6 +352,8 @@ export default function BoardEditor() {
     explicationRef.current = resultat;
     // Si un coup est en cours d'animation, on attend « Revenir à ma position ».
     if (!fxRef.current) setPote(resultat);
+    // Sinon, Pote arrête quand même de réfléchir (l'explication est prête).
+    else setPote((p) => (p.reflexion ? { ...p, reflexion: null } : p));
   };
 
   // --- Animation manga d'un coup proposé par Stockfish ---
@@ -337,21 +368,26 @@ export default function BoardEditor() {
       setFx(next);
       setPote(next.pote);
       // Secousse du plateau au moment de l'impact (après le glissement de la pièce).
-      if (next.kind !== "move" && !prefersReducedMotion()) {
-        const strength = next.kind === "mate" ? 10 : 6;
-        boardBoxRef.current?.animate(
-          [
-            { transform: "translate(0, 0)" },
-            { transform: `translate(${-strength}px, ${strength / 2}px)` },
-            { transform: `translate(${strength}px, ${-strength / 2}px)` },
-            { transform: `translate(${-strength / 2}px, ${-strength / 2}px)` },
-            { transform: `translate(${strength / 2}px, ${strength / 2}px)` },
-            { transform: "translate(0, 0)" },
-          ],
-          { duration: next.kind === "mate" ? 500 : 350, delay: 380, easing: "ease-out" },
-        );
-      }
+      secouer(next, 380);
     });
+  };
+
+  // Secousse du plateau sur une prise, un échec ou un mat. delay : quand la pièce arrive.
+  // Le plateau tremble de moins en moins, avec une toute petite rotation (plus naturel).
+  const secouer = (coup: MoveFx, delay: number) => {
+    if (coup.kind === "move" || coup.kind === "castle" || prefersReducedMotion()) return;
+    const f = coup.kind === "mate" ? 9 : coup.kind === "check" ? 6 : 4;
+    boardBoxRef.current?.animate(
+      [
+        { transform: "translate(0, 0) rotate(0)" },
+        { transform: `translate(${-f}px, ${f / 2}px) rotate(-0.6deg)` },
+        { transform: `translate(${f * 0.8}px, ${-f / 3}px) rotate(0.5deg)` },
+        { transform: `translate(${-f / 2}px, ${-f / 4}px) rotate(-0.3deg)` },
+        { transform: `translate(${f / 4}px, ${f / 6}px) rotate(0.1deg)` },
+        { transform: "translate(0, 0) rotate(0)" },
+      ],
+      { duration: coup.kind === "mate" ? 520 : 380, delay, easing: "ease-out" },
+    );
   };
 
   const backToPosition = () => {
@@ -433,9 +469,10 @@ export default function BoardEditor() {
               customLightSquareStyle={{ backgroundColor: "#f3e4c6" }}
               customDarkSquareStyle={{ backgroundColor: "#b98a5e" }}
               areArrowsAllowed={false}
-              animationDuration={fx ? 400 : 150}
+              animationDuration={fx ? 400 : 220}
             />
             {fx && <MangaFx key={fx.id} fx={fx} orientation={orientation} />}
+            {!fx && fxJeu && <MangaFx key={fxJeu.id} fx={fxJeu} orientation={orientation} rapide />}
           </div>
           {fx && (
             <div className={styles.row}>
@@ -547,7 +584,7 @@ export default function BoardEditor() {
 
       <div className={styles.sideCol}>
         <div className={styles.pote}>
-          <Pote mood={pote.mood} text={pote.text} />
+          <Pote mood={pote.mood} text={pote.text} reflexion={pote.reflexion ?? null} />
         </div>
 
         <div className={styles.play}>

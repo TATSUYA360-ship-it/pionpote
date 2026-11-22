@@ -1,5 +1,8 @@
-/* Durée totale ≈ 1,4 s. La pièce glisse pendant ~0,4 s, puis l'impact arrive. */
+/* MangaFx.module.css : les effets dessinés par-dessus le plateau pendant un coup.
+   --impact = le moment où la pièce arrive sur sa case (0,38 s pour « Voir », 0,12 s en partie).
+   Durée totale ≈ 1,4 s (1 s en version rapide). */
 .layer {
+  --impact: 0.38s;
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -7,40 +10,62 @@
   z-index: 10;
 }
 
-/* --- Traits de vitesse --- */
-.speed {
+/* --- Le dessin au feutre (traits de vitesse, atterrissage) --- */
+.dessin {
   position: absolute;
-  height: 11%;
-  transform-origin: 0 50%;
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0 5px,
-    rgba(20, 20, 20, 0.75) 5px 7px
-  );
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 60%, transparent);
-  mask-image: linear-gradient(to right, transparent, #000 60%, transparent);
-  animation: speed 0.55s ease-out forwards;
-  opacity: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
 }
-@keyframes speed {
-  0% { opacity: 0; clip-path: inset(0 100% 0 0); }
-  20% { opacity: 1; }
-  70% { opacity: 1; clip-path: inset(0 0 0 0); }
-  100% { opacity: 0; clip-path: inset(0 0 0 60%); }
+/* Chaque trait se dessine de la case de départ vers l'arrivée, puis s'efface par la queue,
+   comme la traînée d'une pièce qui fonce. (pathLength=1 : la longueur du trait vaut 1) */
+.trait {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 3px;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+  opacity: 0.85;
+  animation: trait 0.75s cubic-bezier(0.25, 0.8, 0.35, 1) forwards;
+}
+.trait:nth-child(1), .trait:nth-child(3) { stroke-width: 2px; animation-delay: 0.04s; }
+@keyframes trait {
+  0% { stroke-dashoffset: 1; }
+  45% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -1; }
+}
+/* Petits traits d'atterrissage : ils jaillissent quand la pièce se pose */
+.pouf {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2.5px;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+  animation: pouf 0.5s ease-out var(--impact) forwards;
+}
+@keyframes pouf {
+  0% { stroke-dashoffset: 1; opacity: 1; }
+  50% { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: -1; opacity: 0; }
 }
 
-/* --- Rayons de concentration (fond manga) --- */
+/* --- Rayons de concentration (échec et mat seulement), fins et légers --- */
 .focus {
   position: absolute;
   inset: -20%;
   -webkit-mask-image: radial-gradient(circle, transparent 30%, #000 75%);
   mask-image: radial-gradient(circle, transparent 30%, #000 75%);
   opacity: 0;
-  animation: focus 1.2s ease-out 0.35s forwards;
+  animation: focus 1.1s ease-out var(--impact) forwards;
 }
 @keyframes focus {
   0% { opacity: 0; }
-  15% { opacity: 0.9; }
+  15% { opacity: 1; }
   100% { opacity: 0; }
 }
 
@@ -49,19 +74,21 @@
   position: absolute;
   width: 34%;
   height: 34%;
+  overflow: visible;
   transform: translate(-50%, -50%) scale(0);
-  animation: burst 0.7s cubic-bezier(0.2, 1.6, 0.4, 1) 0.38s forwards;
+  animation: burst 0.7s cubic-bezier(0.2, 1.6, 0.4, 1) var(--impact) forwards;
 }
-.burstOuter { fill: #ffe14d; stroke: #111; stroke-width: 3; }
+.feutre { filter: url(#trait-main); }
+.burstOuter { fill: var(--yellow); stroke: var(--ink); stroke-width: 2.5; stroke-linejoin: round; }
 .burstInner { fill: #fff; }
-.check .burstOuter, .mate .burstOuter { fill: #ff4b3e; }
+.check .burstOuter, .mate .burstOuter { fill: var(--red); }
 @keyframes burst {
   0% { transform: translate(-50%, -50%) scale(0) rotate(0deg); opacity: 1; }
-  50% { transform: translate(-50%, -50%) scale(1.1) rotate(12deg); opacity: 1; }
-  100% { transform: translate(-50%, -50%) scale(1.25) rotate(18deg); opacity: 0; }
+  45% { transform: translate(-50%, -50%) scale(1.1) rotate(10deg); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1.25) rotate(16deg); opacity: 0; }
 }
 
-/* --- Onomatopée --- */
+/* --- Onomatopée : grosses lettres manga, contour d'encre (sans ombre) --- */
 .word {
   position: absolute;
   transform: translate(-50%, -50%) scale(0) rotate(-8deg);
@@ -70,25 +97,42 @@
   letter-spacing: 1px;
   white-space: nowrap;
   color: #fff;
-  -webkit-text-stroke: 2px #111;
+  -webkit-text-stroke: 3px var(--ink);
   paint-order: stroke fill;
-  text-shadow: 4px 4px 0 #111;
-  animation: word 1.4s cubic-bezier(0.2, 1.8, 0.4, 1) 0.32s forwards;
+  animation: word 1.4s cubic-bezier(0.2, 1.8, 0.4, 1) var(--impact) forwards;
 }
 .move .word { font-size: clamp(20px, 6vw, 34px); color: #9fe3b4; animation-delay: 0.1s; }
-.capture .word { color: #ffd23f; }
-.check .word, .mate .word { color: #ff4b3e; }
+/* (couleurs fixes : le plateau ne change pas en mode sombre) */
+.castle .word, .promotion .word { color: #9fe3b4; }
+.capture .word { color: var(--yellow); }
+.check .word, .mate .word { color: var(--red); }
 .mate .word { font-size: clamp(30px, 10vw, 64px); }
 @keyframes word {
   0% { transform: translate(-50%, -50%) scale(0) rotate(-8deg); opacity: 1; }
-  25% { transform: translate(-50%, -50%) scale(1.15) rotate(-8deg); }
-  35% { transform: translate(-50%, -50%) scale(1) rotate(-6deg); }
+  22% { transform: translate(-50%, -50%) scale(1.15) rotate(-9deg); }
+  34% { transform: translate(-50%, -50%) scale(1) rotate(-6deg); }
   80% { opacity: 1; }
-  100% { transform: translate(-50%, -60%) scale(1) rotate(-6deg); opacity: 0; }
+  100% { transform: translate(-50%, -62%) scale(1) rotate(-5deg); opacity: 0; }
 }
 
-/* Pour les personnes qui préfèrent moins d'animations (réglage du téléphone) */
+/* --- Version rapide (pendant la partie) : plus courte et un peu plus petite --- */
+.rapide .trait { animation-duration: 0.5s; }
+.rapide .burst { width: 26%; height: 26%; animation-duration: 0.55s; }
+.rapide .word { font-size: clamp(22px, 7vw, 40px); animation-duration: 1s; }
+.rapide.mate .word { font-size: clamp(26px, 8.5vw, 52px); animation-duration: 1.8s; }
+
+/* Pour les personnes qui préfèrent moins d'animations (réglage du téléphone) :
+   pas de mouvement, juste le mot qui apparaît et disparaît en fondu. */
 @media (prefers-reduced-motion: reduce) {
-  .speed, .focus, .burst { display: none; }
-  .word { animation-duration: 2s; }
+  .dessin, .focus, .burst { display: none; }
+  .word {
+    animation-name: wordCalme;
+    animation-duration: 1.6s;
+    animation-timing-function: ease;
+  }
+}
+@keyframes wordCalme {
+  0% { transform: translate(-50%, -50%) rotate(-6deg); opacity: 0; }
+  20%, 75% { transform: translate(-50%, -50%) rotate(-6deg); opacity: 1; }
+  100% { transform: translate(-50%, -50%) rotate(-6deg); opacity: 0; }
 }
