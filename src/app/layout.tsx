@@ -19,7 +19,9 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
-      <body className={manga.variable}>{children}</body>
+      <body>
+        <div className={manga.variable}>{children}</div>
+      </body>
     </html>
   );
 }
