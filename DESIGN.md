@@ -5,8 +5,10 @@ ressemble au reste. Les valeurs sont dans `src/app/globals.css` : **toujours uti
 jamais écrire une couleur ou une taille à la main.**
 
 ## L'esprit
-Une planche de manga pour débutants : papier beige à petits points, traits d'encre noirs épais,
-ombres dures (décalées, jamais floues), couleurs franches. Joyeux, lisible, sans jargon.
+Un carnet de croquis : papier beige à petits points, écriture au feutre pour le logo et les titres,
+traits fins, couleurs franches mais peu nombreuses. Simple et « fait main ».
+**À éviter** (l'utilisateur trouve que ça « fait IA ») : émojis dans l'interface, ombres dures décalées,
+étiquettes/badges, contours épais partout, effets empilés.
 Pensé d'abord pour l'iPhone (une colonne, gros boutons), puis l'ordinateur (2 colonnes dès 900 px).
 
 ## Couleurs (chacune a UN sens)
@@ -15,7 +17,7 @@ Pensé d'abord pour l'iPhone (une colonne, gros boutons), puis l'ordinateur (2 c
 | `--green` / `--green-soft` | bon coup, action principale (comme la flèche verte) |
 | `--red` / `--red-soft` | pièce en danger, gaffe (comme les cases rouges) |
 | `--orange` | menace de l'adversaire (flèche orange) |
-| `--yellow` | bouton manga (« Voir », « Revoir »), choix sélectionné, focus clavier |
+| `--yellow` | surlignage des cases pendant l'animation d'un coup, focus clavier |
 | `--blue-soft` | Pote qui réfléchit |
 | `--bg`, `--card`, `--text`, `--muted`, `--ink` | papier, cartes, texte, texte discret, encre |
 
@@ -28,19 +30,22 @@ Le filtre SVG `#trait-main` fait trembler un peu le trait, comme à la main.
 Pas d'étiquette, pas de contour, pas d'ombre sur le logo : l'utilisateur trouvait que ça « faisait IA ».
 
 ## Typo
-- Titres : police manga **Bangers** (`var(--font-manga)`), classe `.title-manga`. Jamais pour un texte long.
+- Logo et titres de section : police feutre **Yusei Magic** (`var(--font-feutre)`), classe `.titre`.
 - Texte : police du système, 15–16 px, interligne 1.4. Astuces et aides : 13–14 px, couleur `--muted`.
 - Coups d'échecs (e4, Cf3) : gras, 20 px.
+- La police manga **Bangers** sert uniquement aux onomatopées des animations (BAM !, ÉCHEC !).
 
 ## Espacements et formes
 - Espacements : seulement `--s1` (4) `--s2` (8) `--s3` (12) `--s4` (16) `--s5` (24).
-- Bordure : `var(--line)` (2,5 px d'encre). Ombre : `var(--shadow)`, ou `var(--shadow-lg)` pour le plateau.
-- Arrondis : `--radius` (14 px) pour les cartes et le gros bouton, `--radius-sm` (10 px) pour le reste.
+- Bordure : `var(--line)` (1,5 px). **Pas d'ombre.**
+- Arrondis : `--radius` (12 px) pour les cartes, `--radius-sm` (10 px) pour les boutons.
 
 ## Composants à réutiliser
-- `.btn` bouton normal, `.btn btn-main` action principale verte (une seule par écran),
-  `.btn btn-manga` petit bouton jaune. Hauteur mini 44 px (taille d'un doigt). Quand on appuie, il « s'enfonce ».
-- `.card` : encadré blanc à trait d'encre pour regrouper un bloc (résultats, corriger la position…).
+- `.btn` bouton normal (trait fin, fond transparent), `.btn btn-main` action principale verte
+  (une seule par écran), `.btn btn-petit` petit bouton rond (« voir »). Hauteur mini 44 px.
+- Pas d'émoji dans les boutons ni les titres : des mots simples.
+- `.card` : cadre au trait fin pour regrouper un bloc (résultats, corriger la position…).
+- Choix sélectionné (« Qui joue ? ») : rempli à l'encre (fond `--text`, texte `--bg`).
 - Bulle de Pote : couleur selon l'humeur (vert content, rouge paniqué, bleu pensif, blanc neutre).
   Pote parle **toujours** juste au-dessus du plateau sur téléphone.
 

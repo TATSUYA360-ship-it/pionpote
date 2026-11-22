@@ -25,7 +25,7 @@
   width: 1ch;
 }
 /* Le meilleur coup : fond vert clair, comme la flèche verte du plateau */
-.best { background: var(--green-soft); border-color: var(--green) !important; }
+.best { background: var(--green-soft); }
 .best .san { color: var(--green); }
 .san { font-size: 20px; font-weight: 800; min-width: 56px; }
 .score {
@@ -34,7 +34,7 @@
   font-weight: 600;
   flex: 1;
 }
-.play { min-height: 38px; padding: var(--s1) var(--s3); font-size: 14px; }
+.play { min-height: 34px; padding: var(--s1) var(--s3); font-size: 14px; border-radius: 999px; }
 .hint { font-size: 13px; color: var(--muted); margin: 0; }
 
 .dangerTitle { color: var(--red); }

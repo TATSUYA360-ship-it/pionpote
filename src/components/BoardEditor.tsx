@@ -239,25 +239,25 @@ export default function BoardEditor() {
           </div>
           {fx && (
             <div className={styles.row}>
-              <button type="button" className="btn btn-manga" onClick={() => showMove(fx.uci)}>
-                🔁 Revoir
+              <button type="button" className="btn" onClick={() => showMove(fx.uci)}>
+                Revoir
               </button>
               <button type="button" className="btn" onClick={backToPosition}>
-                ↩️ Revenir à ma position
+                Revenir à ma position
               </button>
             </div>
           )}
           {fromPhoto && !fx && (
             <div className={styles.row}>
               <button type="button" className="btn" onClick={() => setBoard((b) => rotateBoard(b))}>
-                🔄 Les pièces sont à l&apos;envers ? Tourner le plateau
+                Pièces à l&apos;envers ? Tourner le plateau
               </button>
             </div>
           )}
         </div>
 
         <section className={`card ${styles.edit}`}>
-          <h2 className="title-manga">Corriger la position</h2>
+          <h2 className="titre">Corriger la position</h2>
           <p className={styles.hint}>Touche une pièce puis une case pour la poser.</p>
           <PiecePalette tool={tool} onChange={setTool} />
           <div className={styles.row}>
@@ -319,7 +319,7 @@ export default function BoardEditor() {
             onClick={analyze}
             disabled={status === "loading"}
           >
-            {status === "loading" ? "Analyse en cours…" : "🔍 Analyser"}
+            {status === "loading" ? "Analyse en cours…" : "Analyser"}
           </button>
         </div>
 

@@ -34,9 +34,8 @@
   position: relative;
   flex: 1;
   background: var(--bulle);
-  border: var(--line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  border: 2px solid var(--text);
+  border-radius: 18px;
   padding: var(--s3) var(--s4);
   font-size: 15px;
   line-height: 1.45;
@@ -54,8 +53,8 @@
   height: 14px;
   margin-top: -7px;
   background: var(--bulle);
-  border-left: var(--line);
-  border-bottom: var(--line);
+  border-left: 2px solid var(--text);
+  border-bottom: 2px solid var(--text);
   transform: rotate(45deg);
 }
 

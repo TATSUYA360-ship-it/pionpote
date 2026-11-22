@@ -58,7 +58,7 @@ export default function PhotoReader({ onStart, onRead, onError }: Props) {
         disabled={busy}
         onClick={() => cameraRef.current?.click()}
       >
-        {busy ? "Je regarde ta photo…" : "📷 Prendre en photo mon échiquier"}
+        {busy ? "Je regarde ta photo…" : "Prendre en photo mon échiquier"}
       </button>
       <button
         type="button"
@@ -66,7 +66,7 @@ export default function PhotoReader({ onStart, onRead, onError }: Props) {
         disabled={busy}
         onClick={() => galleryRef.current?.click()}
       >
-        🖼️ Choisir une image ou une capture
+        Choisir une image ou une capture
       </button>
       {/* Les vrais champs "fichier" sont cachés : on les déclenche avec les beaux boutons. */}
       <input

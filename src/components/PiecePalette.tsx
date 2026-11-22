@@ -50,7 +50,7 @@ export default function PiecePalette({ tool, onChange }: Props) {
           onClick={() => onChange("move")}
           aria-pressed={tool === "move"}
         >
-          ✋ Déplacer
+          Déplacer
         </button>
         <button
           type="button"
@@ -58,7 +58,7 @@ export default function PiecePalette({ tool, onChange }: Props) {
           onClick={() => onChange(tool === "erase" ? "move" : "erase")}
           aria-pressed={tool === "erase"}
         >
-          🧽 Gomme
+          Gomme
         </button>
       </div>
     </div>

@@ -17,14 +17,12 @@
   --red: #d93b2b;         /* pièce en danger, gaffe */
   --red-soft: #fbe1dc;
   --orange: #ef8a1f;      /* menace de l'adversaire */
-  --yellow: #ffd23f;      /* bouton manga "Voir", surlignage */
+  --yellow: #ffd23f;      /* surlignage des cases pendant l'animation, focus clavier */
   --blue-soft: #e3eefb;   /* Pote qui réfléchit */
 
-  /* Formes */
-  --line: 2.5px solid var(--ink);
-  --shadow: 3px 3px 0 var(--ink);   /* ombre dure, pas floue */
-  --shadow-lg: 5px 5px 0 var(--ink);
-  --radius: 14px;
+  /* Formes : un trait fin d'encre, pas d'ombre */
+  --line: 1.5px solid var(--ink);
+  --radius: 12px;
   --radius-sm: 10px;
 
   /* Espacements : on n'utilise que ces valeurs */
@@ -53,9 +51,7 @@
     --red-soft: #46201b;
     --blue-soft: #1f2c3d;
     /* Dans le noir, le trait d'encre devient clair pour rester visible */
-    --line: 2.5px solid #d8cdb9;
-    --shadow: 3px 3px 0 #000;
-    --shadow-lg: 5px 5px 0 #000;
+    --line: 1.5px solid #6d6357;
   }
 }
 
@@ -123,21 +119,20 @@ button { font: inherit; }
   color: var(--muted);
 }
 
-/* Titres de section (« Les 3 meilleurs coups », « Corriger la position »…) */
-.title-manga {
+/* Titres de section (« Les 3 meilleurs coups », « Corriger la position »…) :
+   écrits au feutre, comme le logo. */
+.titre {
   margin: 0;
-  font-family: var(--font-manga), Impact, sans-serif;
+  font-family: var(--font-feutre), "Comic Sans MS", cursive;
   font-weight: 400;
   font-size: 22px;
-  letter-spacing: 0.5px;
-  line-height: 1.1;
+  line-height: 1.2;
 }
 
-/* --- Boutons : 3 sortes seulement ---
-   .btn          bouton normal (carte blanche, trait d'encre, ombre dure)
-   .btn-main     action principale (vert)
-   .btn-manga    petit bouton jaune (« Voir », « Revoir »)
-   Quand on appuie, le bouton "s'enfonce" : l'ombre disparaît. */
+/* --- Boutons : 3 sortes seulement, sans ombre ni effet ---
+   .btn          bouton normal : juste un trait fin, fond transparent
+   .btn-main     action principale : vert plein (une seule par écran)
+   .btn-petit    petit bouton (« voir », « revoir ») */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -147,36 +142,33 @@ button { font: inherit; }
   padding: var(--s2) var(--s3);
   border: var(--line);
   border-radius: var(--radius-sm);
-  background: var(--card);
+  background: transparent;
   color: var(--text);
   font-size: 15px;
   font-weight: 600;
-  box-shadow: var(--shadow);
   cursor: pointer;
-  transition: transform 0.06s, box-shadow 0.06s;
+  transition: background-color 0.15s, transform 0.1s;
 }
-.btn:active:not(:disabled) { transform: translate(3px, 3px); box-shadow: none; }
+.btn:active:not(:disabled) { transform: scale(0.97); }
 .btn:disabled { opacity: 0.6; cursor: wait; }
 .btn-main {
+  border-color: transparent;
   background: var(--green);
   color: #fff;
-  font-size: 18px;
-  font-weight: 800;
-  min-height: 54px;
-  border-radius: var(--radius);
-  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.25);
+  font-size: 17px;
+  font-weight: 700;
+  min-height: 52px;
 }
-.btn-manga {
-  background: var(--yellow);
-  color: #111;
-  font-weight: 800;
+.btn-petit {
+  min-height: 36px;
+  padding: var(--s1) var(--s3);
+  font-size: 14px;
+  border-radius: 999px;
 }
 
-/* Carte : un encadré blanc à trait d'encre */
+/* Carte : un simple cadre au trait fin, sans ombre */
 .card {
-  background: var(--card);
   border: var(--line);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: var(--s3) var(--s4);
+  padding: var(--s4);
 }

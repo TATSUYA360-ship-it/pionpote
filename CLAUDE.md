@@ -31,8 +31,8 @@ augmenter `CACHE` dans `public/sw.js`. Plus tard, éventuellement Capacitor pour
 
 ## Design
 Avant de toucher à l'interface, lire `DESIGN.md` (le « style PionPote ») et le respecter :
-variables de `src/app/globals.css`, boutons `.btn` / `.btn-main` / `.btn-manga`, cartes `.card`,
-titres `.title-manga`. Montrer des captures téléphone avant/après.
+variables de `src/app/globals.css`, boutons `.btn` / `.btn-main` / `.btn-petit`, cartes `.card`,
+titres `.titre`, pas d'émojis ni d'ombres. Montrer des captures téléphone avant/après.
 
 ## Règles de travail
 - Faire un commit git à chaque fois qu'une partie marche.

@@ -17,7 +17,7 @@ type Props = {
 export default function AnalysisPanel({ fen, turn, lines, danger, onShowMove }: Props) {
   return (
     <div className={`card ${styles.panel}`}>
-      <h2 className="title-manga">Les 3 meilleurs coups</h2>
+      <h2 className="titre">Les 3 meilleurs coups</h2>
       <ol className={styles.moves}>
         {lines.map((line) => (
           <li key={line.multipv} className={line.multipv === 1 ? styles.best : ""}>
@@ -25,10 +25,10 @@ export default function AnalysisPanel({ fen, turn, lines, danger, onShowMove }: 
             <span className={styles.score}>{formatScore(line, turn)}</span>
             <button
               type="button"
-              className={`btn btn-manga ${styles.play}`}
+              className={`btn btn-petit ${styles.play}`}
               onClick={() => onShowMove(line.pv[0])}
             >
-              ▶ Voir
+              voir
             </button>
           </li>
         ))}
@@ -39,7 +39,7 @@ export default function AnalysisPanel({ fen, turn, lines, danger, onShowMove }: 
       </p>
       {danger.length > 0 && (
         <>
-          <h2 className={`title-manga ${styles.dangerTitle}`}>⚠️ Pièces en danger</h2>
+          <h2 className={`titre ${styles.dangerTitle}`}>Pièces en danger</h2>
           <ul className={styles.danger}>
             {danger.map((d) => (
               <li key={d.square} className={styles.dangerItem}>

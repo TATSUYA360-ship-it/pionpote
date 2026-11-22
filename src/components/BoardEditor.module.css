@@ -21,10 +21,8 @@
   width: 100%;
   max-width: 560px;
   touch-action: none;
-  border: 3px solid var(--ink);
-  border-radius: 6px;
+  border-radius: 4px;
   overflow: hidden;
-  box-shadow: var(--shadow-lg);
 }
 
 .hint { margin: calc(-1 * var(--s2)) 0 0; color: var(--muted); font-size: 14px; }
@@ -54,20 +52,19 @@
   min-height: 48px;
   border: var(--line);
   border-radius: var(--radius-sm);
-  background: var(--card);
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: var(--shadow);
 }
 .turn label span { font-size: 22px; line-height: 1; }
 /* Le vrai rond de la case est caché, mais reste utilisable au clavier. */
 .turn input { position: absolute; opacity: 0; pointer-events: none; }
 .turn label:has(input:focus-visible) { outline: 3px solid var(--yellow); outline-offset: 2px; }
+.turnLegend { font-family: var(--font-feutre), cursive; font-weight: 400 !important; font-size: 19px; }
+/* Le camp choisi est "rempli" à l'encre */
 .turnOn {
-  background: var(--yellow) !important;
-  color: #111;
-  transform: translate(3px, 3px);
-  box-shadow: none !important;
+  background: var(--text);
+  border-color: var(--text) !important;
+  color: var(--bg);
 }
 
 @media (min-width: 900px) {
