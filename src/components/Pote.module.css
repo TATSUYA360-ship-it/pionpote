@@ -1,0 +1,59 @@
+.wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.pote {
+  width: 84px;
+  flex-shrink: 0;
+}
+.body {
+  fill: var(--pote-body);
+  stroke: var(--ink);
+  stroke-width: 3;
+}
+.ink { fill: var(--ink); }
+.line {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.eyeWhite { fill: #fff; stroke: var(--ink); stroke-width: 2; }
+.cheek { fill: #f4a3a3; opacity: 0.7; }
+.sweat { fill: #7cc4f0; }
+
+.content { animation: hop 0.6s ease; }
+.panique { animation: shake 0.4s ease 2; }
+.pensif { transform: rotate(-4deg); }
+
+.bubble {
+  position: relative;
+  flex: 1;
+  background: var(--card);
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  padding: 10px 14px;
+  font-size: 15px;
+  line-height: 1.4;
+}
+.bubble::before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  margin-top: -8px;
+  border: 8px solid transparent;
+  border-right-color: var(--ink);
+  border-left: 0;
+}
+
+@keyframes hop {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-10px); }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}

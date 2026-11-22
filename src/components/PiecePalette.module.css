@@ -1,0 +1,22 @@
+.palette { display: flex; flex-direction: column; gap: 6px; }
+.row { display: flex; gap: 6px; }
+.piece, .tool {
+  border: 2px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  border-radius: 10px;
+  cursor: pointer;
+}
+.piece {
+  flex: 1;
+  font-size: 28px;
+  line-height: 1;
+  padding: 4px 0 6px;
+  color: #222;
+  background: #f3ead8;
+}
+.tool { flex: 1; padding: 8px; font-size: 15px; }
+.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}

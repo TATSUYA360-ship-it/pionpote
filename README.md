@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PionPote ♟️
 
-## Getting Started
+Ton pote pour comprendre une position d'échecs. Étape 1 : un plateau où tu places les pièces,
+et Stockfish qui te montre le meilleur coup.
 
-First, run the development server:
+## Lancer l'appli sur ton ordinateur
+
+Il te faut [Node.js](https://nodejs.org) (version 20 ou plus). Puis, dans un terminal, dans ce dossier :
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install      # télécharge les bibliothèques (une seule fois)
+npm run dev      # lance l'appli
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Ouvre ensuite http://localhost:3000 dans ton navigateur. Pour arrêter : `Ctrl + C` dans le terminal.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Pour tester sur ton téléphone (sur le même Wi-Fi) : `npm run dev -- -H 0.0.0.0`, puis ouvre
+`http://<adresse-IP-de-ton-ordi>:3000` sur le téléphone.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Comment tester
 
-## Learn More
+1. Appuie sur **Analyser** avec la position de départ : Pote répond, une flèche verte apparaît, les 3 meilleurs coups s'affichent.
+2. **Vider**, puis choisis une pièce dans la palette et touche une case pour la poser. La **Gomme** enlève une pièce.
+   En mode **Déplacer**, tu glisses les pièces (glisser une pièce hors du plateau la supprime).
+3. Essaie une position fausse (sans roi, ou un pion sur la 8e rangée) : Pote te dit ce qui ne va pas.
+4. Mets une pièce attaquée et pas défendue : sa case devient rouge.
 
-To learn more about Next.js, take a look at the following resources:
+## Les fichiers, expliqués
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Fichier | À quoi il sert |
+|---|---|
+| `src/app/page.tsx` | La page d'accueil : le titre et l'éditeur. |
+| `src/app/layout.tsx` | Le cadre commun à toutes les pages (langue française, titre de l'onglet). |
+| `src/app/globals.css` | Les couleurs et styles de base (avec un mode sombre automatique). |
+| `src/components/BoardEditor.tsx` | Le cœur de l'étape 1 : plateau, choix de qui joue, bouton Analyser, flèche verte, cases rouges. |
+| `src/components/PiecePalette.tsx` | La boîte à outils : les 12 pièces, la gomme et le mode Déplacer. |
+| `src/components/AnalysisPanel.tsx` | La liste des 3 meilleurs coups et des pièces en danger. |
+| `src/components/Pote.tsx` | La mascotte Pote en dessin (SVG), ses 4 expressions et sa bulle. |
+| `src/lib/position.ts` | Transforme le plateau en FEN (le texte qui décrit une position) et vérifie que la position est jouable. |
+| `src/lib/stockfish.ts` | Parle au moteur Stockfish (dans un Web Worker, pour ne pas figer l'écran). |
+| `src/lib/danger.ts` | Repère les pièces en danger avec chess.js. |
+| `src/lib/evaluation.ts` | Traduit les chiffres de Stockfish : score lisible, coups en notation française, humeur de Pote. |
+| `public/stockfish/` | Le moteur Stockfish 18 « lite » mono-thread (fichier JS + WebAssembly, ~7 Mo). |
+| `CLAUDE.md` | La vision du projet, pour que Claude Code s'en souvienne aux prochaines étapes. |
+| `*.module.css` | Le style de chaque composant (chaque fichier CSS va avec le composant du même nom). |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Licence
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Stockfish est sous licence GPLv3 (voir https://github.com/nmrugg/stockfish.js).
