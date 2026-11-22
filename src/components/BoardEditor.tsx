@@ -4,6 +4,7 @@
 // - le choix de qui joue
 // - le bouton "Analyser" qui vérifie la position puis interroge Stockfish
 // - l'affichage : flèche verte, cases rouges, liste des coups, Pote
+// - l'explication de Pote (demandée au serveur, /api/expliquer)
 // - la lecture d'une photo de l'échiquier (PhotoReader), puis la correction à la main
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Chessboard } from "react-chessboard";
@@ -22,6 +23,7 @@ import {
 import { findPiecesInDanger, type DangerPiece } from "@/lib/danger";
 import { StockfishEngine, type EngineLine } from "@/lib/stockfish";
 import { poteReaction, type Mood } from "@/lib/evaluation";
+import { calculerFaits, explicationSimple, menaceAdverse } from "@/lib/faits";
 import PiecePalette, { type Tool } from "./PiecePalette";
 import AnalysisPanel from "./AnalysisPanel";
 import Pote from "./Pote";
@@ -30,7 +32,8 @@ import PhotoReader from "./PhotoReader";
 import { buildMoveFx, type MoveFx } from "@/lib/moveFx";
 import styles from "./BoardEditor.module.css";
 
-type Analysis = { fen: string; turn: Color; lines: EngineLine[]; danger: DangerPiece[] };
+// menace : le coup que l'adversaire voudrait jouer (flèche orange), s'il y en a un.
+type Analysis = { fen: string; turn: Color; lines: EngineLine[]; danger: DangerPiece[]; menace: string | null };
 type Status = "idle" | "loading" | "done" | "error";
 
 export default function BoardEditor() {
@@ -45,12 +48,21 @@ export default function BoardEditor() {
     text: "Salut, moi c'est Pote ! Prends ton échiquier en photo (ou place les pièces à la main), choisis qui joue, puis appuie sur «\u00a0Analyser\u00a0».",
   });
 
+  // L'explication de la position analysée (pour la réafficher après une animation).
+  const explicationRef = useRef<{ mood: Mood; text: string } | null>(null);
+  // Numéro de la dernière analyse : une réponse en retard d'une ancienne analyse est ignorée.
+  const analyseIdRef = useRef(0);
+
   // true quand la position vient d'une photo : on affiche le bouton « Tourner les pièces ».
   const [fromPhoto, setFromPhoto] = useState(false);
 
   // Coup montré en animation manga (null = on affiche la position éditée).
   const [fx, setFx] = useState<MoveFx | null>(null);
   const boardBoxRef = useRef<HTMLDivElement>(null);
+  const fxRef = useRef<MoveFx | null>(null);
+  useEffect(() => {
+    fxRef.current = fx;
+  }, [fx]);
 
   // Le moteur est créé une seule fois, au premier clic sur "Analyser".
   const engineRef = useRef<StockfishEngine | null>(null);
@@ -59,6 +71,8 @@ export default function BoardEditor() {
   // Toute modification de la position efface l'ancienne analyse.
   const fen = useMemo(() => boardToFen(board, turn), [board, turn]);
   useEffect(() => {
+    analyseIdRef.current += 1;
+    explicationRef.current = null;
     setAnalysis(null);
     setFx(null);
     setStatus((s) => (s === "loading" ? s : "idle"));
@@ -144,14 +158,46 @@ export default function BoardEditor() {
       engineRef.current ??= new StockfishEngine();
       const result = await engineRef.current.analyze(check.fen, 15);
       const danger = findPiecesInDanger(check.fen, turn);
-      setAnalysis({ fen: check.fen, turn, lines: result.lines, danger });
-      setPote(poteReaction(result.lines[0]));
+      const menace = menaceAdverse(check.fen, turn)?.uci ?? null;
+      setAnalysis({ fen: check.fen, turn, lines: result.lines, danger, menace });
       setStatus("done");
+      expliquer(check.fen, turn, result.lines);
     } catch (err) {
       console.error(err);
       setStatus("error");
       setPote({ mood: "panique", text: "Oups, le moteur n'a pas répondu. Recharge la page et réessaie." });
     }
+  };
+
+  // --- Explication de Pote ---
+  // On demande au serveur une explication en mots simples. Si ça échoue (pas d'internet,
+  // limite atteinte…), Pote lit l'explication calculée directement dans le téléphone.
+  const expliquer = async (fenAnalyse: string, camp: Color, lines: EngineLine[]) => {
+    const id = analyseIdRef.current;
+    const { mood } = poteReaction(lines[0]);
+    const secours = { mood, text: explicationSimple(calculerFaits(fenAnalyse, camp, lines)) };
+    explicationRef.current = secours;
+    if (!lines[0]?.pv[0]) {
+      setPote(poteReaction(lines[0]));
+      return;
+    }
+    setPote({ mood: "pensif", text: "J'ai trouvé le bon coup (la flèche verte). Je cherche comment te l'expliquer…" });
+    let resultat = secours;
+    try {
+      const res = await fetch("/api/expliquer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fen: fenAnalyse, lines: lines.map(({ score, pv }) => ({ score, pv: pv.slice(0, 2) })) }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && typeof data.explication === "string") resultat = { mood, text: data.explication };
+    } catch {
+      // pas d'internet : on garde l'explication de secours
+    }
+    if (id !== analyseIdRef.current) return; // la position a changé entre-temps
+    explicationRef.current = resultat;
+    // Si un coup est en cours d'animation, on attend « Revenir à ma position ».
+    if (!fxRef.current) setPote(resultat);
   };
 
   // --- Animation manga d'un coup proposé par Stockfish ---
@@ -185,14 +231,19 @@ export default function BoardEditor() {
 
   const backToPosition = () => {
     setFx(null);
-    if (analysis) setPote(poteReaction(analysis.lines[0]));
+    if (explicationRef.current) setPote(explicationRef.current);
+    else if (analysis) setPote(poteReaction(analysis.lines[0]));
   };
 
   // --- Dessins sur le plateau ---
   const best = analysis?.lines[0]?.pv[0];
-  const arrows: [Square, Square, string][] = best && !fx
-    ? [[best.slice(0, 2) as Square, best.slice(2, 4) as Square, "rgb(34, 170, 80)"]]
-    : [];
+  const arrows: [Square, Square, string][] = [];
+  if (analysis && !fx) {
+    // Flèche orange : la menace de l'adversaire. Flèche verte : le coup conseillé.
+    const m = analysis.menace;
+    if (m) arrows.push([m.slice(0, 2) as Square, m.slice(2, 4) as Square, "rgb(240, 140, 30)"]);
+    if (best) arrows.push([best.slice(0, 2) as Square, best.slice(2, 4) as Square, "rgb(34, 170, 80)"]);
+  }
 
   const squareStyles: Record<string, React.CSSProperties> = {};
   if (fx) {
