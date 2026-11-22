@@ -1,6 +1,7 @@
 // layout.tsx : le "cadre" commun à toutes les pages (langue, titre, styles).
 import type { Metadata, Viewport } from "next";
 import { Bangers } from "next/font/google";
+import ServiceWorker from "@/components/ServiceWorker";
 import "./globals.css";
 
 // Police "bande dessinée" pour les onomatopées manga (BAM !, ÉCHEC !).
@@ -9,11 +10,15 @@ const manga = Bangers({ weight: "400", subsets: ["latin"], variable: "--font-man
 export const metadata: Metadata = {
   title: "PionPote",
   description: "Comprendre une position d'échecs, expliquée simplement.",
+  // Réglages pour l'iPhone quand l'appli est ajoutée à l'écran d'accueil.
+  appleWebApp: { capable: true, title: "PionPote", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#2f8f4e",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -21,6 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="fr">
       <body>
         <div className={manga.variable}>{children}</div>
+        <ServiceWorker />
       </body>
     </html>
   );

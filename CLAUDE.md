@@ -17,8 +17,14 @@ L'utilisateur est débutant en code : explique chaque fichier que tu crées ou m
 Next.js 15 (TypeScript, App Router, dossier `src/`), react-chessboard v4, chess.js, Stockfish 18 lite mono-thread
 (fichiers dans `public/stockfish/`, lancé dans un Web Worker), API Claude plus tard. Interface en français, pensée d'abord pour mobile.
 
+## Appli téléphone
+L'utilisateur a un iPhone et veut une appli, pas un site. Choix actuel : PWA (manifest + service worker
+`public/sw.js`, ajout à l'écran d'accueil via Safari). Si on change des fichiers mis en cache,
+augmenter `CACHE` dans `public/sw.js`. Plus tard, éventuellement Capacitor pour l'App Store
+(compte Apple Developer 99 $/an + un Mac ou un service de build en ligne).
+
 ## Où en est-on
-- Étape 1 (plateau + moteur) : faite.
+- Étape 1 (plateau + moteur) : faite, avec animations manga des coups et version installable (PWA).
 - Étape 2 (explications par l'IA) : à faire. La clé API Claude doit rester côté serveur (route API Next.js +
   variable d'environnement), jamais dans le code du navigateur.
 - Étape 3 (photo) et étape 4 (chat) : à faire.
