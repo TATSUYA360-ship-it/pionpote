@@ -37,7 +37,8 @@ export default function MangaFx({ fx, orientation, rapide = false }: Props) {
   const px = -uy;
   const py = ux;
   const strong = fx.kind !== "move";
-  const showWord = !rapide || strong;
+  // Un coup simple n'a pas de mot (pas de « SWOOSH »), seulement les traits.
+  const showWord = strong && fx.word !== "";
 
   // Trois traits de vitesse parallèles, un peu décalés, qui s'arrêtent avant la case d'arrivée.
   // Le trait du milieu est plus long, ceux des côtés plus courts : comme dessiné à la main.

@@ -28,7 +28,7 @@ export function buildMoveFx(fen: string, uci: string): MoveFx | null {
   }
 
   let kind: FxKind = "move";
-  let word = "SWOOSH !";
+  let word = ""; // coup simple : pas d'onomatopée (juste la traînée)
   let pote: MoveFx["pote"] = { mood: "neutre", text: "Voilà le coup ! Regarde bien où va la pièce." };
 
   if (move.isKingsideCastle() || move.isQueensideCastle()) {
