@@ -21,6 +21,12 @@ Pensé d'abord pour l'iPhone (une colonne, gros boutons), puis l'ordinateur (2 c
 
 Le mode sombre est géré automatiquement par les mêmes variables : ne pas le coder composant par composant.
 
+## Logo
+Version « feutre » : « PionPote » écrit au marqueur (police **Yusei Magic**, `var(--font-feutre)`),
+légèrement penché, souligné d'un coup de feutre vert, avec Pote content au-dessus du « e ».
+Le filtre SVG `#trait-main` fait trembler un peu le trait, comme à la main.
+Pas d'étiquette, pas de contour, pas d'ombre sur le logo : l'utilisateur trouvait que ça « faisait IA ».
+
 ## Typo
 - Titres : police manga **Bangers** (`var(--font-manga)`), classe `.title-manga`. Jamais pour un texte long.
 - Texte : police du système, 15–16 px, interligne 1.4. Astuces et aides : 13–14 px, couleur `--muted`.
@@ -47,6 +53,7 @@ Style manga (traits de vitesse, BAM !, secousse) seulement pour montrer un coup.
 `prefers-reduced-motion`. Pas d'animation décorative ailleurs.
 
 ## Pièges iPhone
+- Dans les textes, mettre une espace insécable (`\u00a0`) avant ! ? : » et après « pour éviter un signe seul en début de ligne.
 - Ajouter `︎` après un symbole d'échecs (♟) sinon l'iPhone l'affiche en émoji.
 - Prévoir l'encoche : `env(safe-area-inset-…)` (déjà dans `.container`).
 - Après un changement de style, augmenter `CACHE` dans `public/sw.js`.

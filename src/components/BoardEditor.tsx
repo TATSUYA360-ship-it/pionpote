@@ -42,7 +42,7 @@ export default function BoardEditor() {
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [pote, setPote] = useState<{ mood: Mood; text: string }>({
     mood: "neutre",
-    text: "Salut, moi c'est Pote ! Prends ton échiquier en photo (ou place les pièces à la main), choisis qui joue, puis appuie sur « Analyser ».",
+    text: "Salut, moi c'est Pote ! Prends ton échiquier en photo (ou place les pièces à la main), choisis qui joue, puis appuie sur «\u00a0Analyser\u00a0».",
   });
 
   // true quand la position vient d'une photo : on affiche le bouton « Tourner les pièces ».
@@ -109,7 +109,7 @@ export default function BoardEditor() {
         "Voilà ce que j'ai vu ! Compare avec ton vrai échiquier et corrige si besoin " +
         "(touche une pièce en bas pour la poser, ou fais-la glisser). " +
         (doutes ? `Vérifie surtout ceci : ${doutes.replace(/[.!\s]*$/, "")}. ` : "") +
-        "Ensuite, choisis qui joue et appuie sur « Analyser ».",
+        "Ensuite, choisis qui joue et appuie sur «\u00a0Analyser\u00a0».",
     });
   };
 

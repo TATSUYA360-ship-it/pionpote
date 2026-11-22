@@ -79,3 +79,18 @@ export default function Pote({ mood, text }: { mood: Mood; text: string }) {
     </div>
   );
 }
+
+// PoteIcon : Pote tout seul (sans bulle), pour le logo en haut de l'écran.
+export function PoteIcon({ mood = "content", className = "" }: { mood?: Mood; className?: string }) {
+  return (
+    <svg viewBox="0 0 120 150" className={`${styles.pote} ${className}`} aria-hidden>
+      <path
+        d="M30 140 q0 -18 18 -24 q-8 -10 -6 -22 h36 q2 12 -6 22 q18 6 18 24 z"
+        className={styles.body}
+      />
+      <rect x="34" y="86" width="52" height="10" rx="5" className={styles.body} />
+      <circle cx="60" cy="56" r="34" className={styles.body} />
+      <Face mood={mood} />
+    </svg>
+  );
+}
