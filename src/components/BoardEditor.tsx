@@ -4,6 +4,7 @@
 // - le choix de qui joue
 // - le bouton "Analyser" qui vérifie la position puis interroge Stockfish
 // - l'affichage : flèche verte, cases rouges, liste des coups, Pote
+// - la lecture d'une photo de l'échiquier (PhotoReader), puis la correction à la main
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import { Chess, type Square } from "chess.js";
@@ -11,6 +12,8 @@ import {
   START_FEN,
   boardToFen,
   fenToBoard,
+  rotateBoard,
+  rowsToBoard,
   validatePosition,
   type BoardMap,
   type Color,
@@ -23,6 +26,7 @@ import PiecePalette, { type Tool } from "./PiecePalette";
 import AnalysisPanel from "./AnalysisPanel";
 import Pote from "./Pote";
 import MangaFx from "./MangaFx";
+import PhotoReader from "./PhotoReader";
 import { buildMoveFx, type MoveFx } from "@/lib/moveFx";
 import styles from "./BoardEditor.module.css";
 
@@ -38,8 +42,11 @@ export default function BoardEditor() {
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [pote, setPote] = useState<{ mood: Mood; text: string }>({
     mood: "neutre",
-    text: "Salut, moi c'est Pote ! Place les pièces comme sur ton échiquier, choisis qui joue, puis appuie sur « Analyser ».",
+    text: "Salut, moi c'est Pote ! Prends ton échiquier en photo (ou place les pièces à la main), choisis qui joue, puis appuie sur « Analyser ».",
   });
+
+  // true quand la position vient d'une photo : on affiche le bouton « Tourner les pièces ».
+  const [fromPhoto, setFromPhoto] = useState(false);
 
   // Coup montré en animation manga (null = on affiche la position éditée).
   const [fx, setFx] = useState<MoveFx | null>(null);
@@ -84,6 +91,30 @@ export default function BoardEditor() {
       delete b[from];
       return b;
     });
+  };
+
+  // --- Photo de l'échiquier ---
+  const onPhotoStart = () => {
+    setFx(null);
+    setPote({ mood: "pensif", text: "Je regarde ta photo… ça peut prendre jusqu'à une minute." });
+  };
+
+  const onPhotoRead = (rows: string[], doutes: string) => {
+    setBoard(rowsToBoard(rows));
+    setOrientation("white");
+    setFromPhoto(true);
+    setPote({
+      mood: "neutre",
+      text:
+        "Voilà ce que j'ai vu ! Compare avec ton vrai échiquier et corrige si besoin " +
+        "(touche une pièce en bas pour la poser, ou fais-la glisser). " +
+        (doutes ? `Vérifie surtout ceci : ${doutes} ` : "") +
+        "Ensuite, choisis qui joue et appuie sur « Analyser ».",
+    });
+  };
+
+  const onPhotoError = (message: string) => {
+    setPote({ mood: "panique", text: message });
   };
 
   // --- Analyse ---
@@ -179,6 +210,7 @@ export default function BoardEditor() {
   return (
     <div className={styles.layout}>
       <div className={styles.boardCol}>
+        <PhotoReader onStart={onPhotoStart} onRead={onPhotoRead} onError={onPhotoError} />
         <div className={styles.board} ref={boardBoxRef}>
           <Chessboard
             id="editeur"
@@ -207,12 +239,31 @@ export default function BoardEditor() {
             </button>
           </div>
         )}
+        {fromPhoto && !fx && (
+          <div className={styles.row}>
+            <button type="button" onClick={() => setBoard((b) => rotateBoard(b))}>
+              🔄 Les pièces sont à l&apos;envers ? Tourner le plateau
+            </button>
+          </div>
+        )}
         <PiecePalette tool={tool} onChange={setTool} />
         <div className={styles.row}>
-          <button type="button" onClick={() => setBoard(fenToBoard(START_FEN))}>
+          <button
+            type="button"
+            onClick={() => {
+              setBoard(fenToBoard(START_FEN));
+              setFromPhoto(false);
+            }}
+          >
             Position de départ
           </button>
-          <button type="button" onClick={() => setBoard({})}>
+          <button
+            type="button"
+            onClick={() => {
+              setBoard({});
+              setFromPhoto(false);
+            }}
+          >
             Vider
           </button>
           <button

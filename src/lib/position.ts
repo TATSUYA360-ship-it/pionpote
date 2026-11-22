@@ -140,3 +140,28 @@ export function validatePosition(board: BoardMap, turn: Color): Validation {
 
   return { ok: true, fen: boardToFen(board, turn) };
 }
+
+/**
+ * Transforme les 8 rangées lues sur la photo (de la 8e à la 1re, "." = case vide)
+ * en BoardMap pour l'éditeur.
+ */
+export function rowsToBoard(rows: string[]): BoardMap {
+  const placement = rows
+    .map((row) => row.replace(/\.+/g, (vide) => String(vide.length)))
+    .join("/");
+  return fenToBoard(placement);
+}
+
+/**
+ * Tourne les pièces d'un demi-tour (a1 <-> h8, b2 <-> g7…).
+ * Utile si la photo a été prise du côté des Noirs et que Pote s'est trompé de sens.
+ */
+export function rotateBoard(board: BoardMap): BoardMap {
+  const rotated: BoardMap = {};
+  for (const [square, piece] of Object.entries(board)) {
+    const file = FILES[7 - FILES.indexOf(square[0])];
+    const rank = 9 - Number(square[1]);
+    rotated[`${file}${rank}`] = piece;
+  }
+  return rotated;
+}
