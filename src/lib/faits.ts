@@ -13,6 +13,7 @@ import { Chess, type Move, type Square } from "chess.js";
 import { findPiecesInDanger } from "./danger";
 import type { Color } from "./position";
 import type { EngineLine } from "./stockfish";
+import { CRI } from "./personnalite";
 
 type Genre = "m" | "f";
 const NOM: Record<string, { nom: string; genre: Genre }> = {
@@ -297,8 +298,9 @@ const majuscule = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 /** Explication de secours, sans IA, si le serveur ne répond pas. */
 export function explicationSimple(f: Faits): string {
   const phrases = [f.situation];
-  if (f.menace) phrases.push(`Attention, ${f.menace}.`);
-  else if (f.dangers.length) phrases.push(`Attention, ${f.dangers[0]}.`);
+  // Danger : Pote pousse son cri d'alerte (voir src/lib/personnalite.ts).
+  if (f.menace) phrases.unshift(`${CRI} Attention, ${f.menace}.`);
+  else if (f.dangers.length) phrases.unshift(`${CRI} Attention, ${f.dangers[0]}.`);
   if (f.meilleurCoup) {
     phrases.push(`Le meilleur coup (la flèche verte) : ${f.meilleurCoup}.`);
     // On évite de répéter « il prend… » si le coup le dit déjà.

@@ -53,12 +53,12 @@ export function poteReaction(best: EngineLine | undefined): { mood: Mood; text: 
   const { type, value } = best.score;
   if (type === "mate") {
     return value > 0
-      ? { mood: "content", text: `Il y a un mat en ${value} ! Regarde la flèche verte.` }
-      : { mood: "panique", text: "Aïe, l'adversaire a un mat en vue… Défends-toi au mieux !" };
+      ? { mood: "content", text: `Chef, il y a un mat en ${value}\u00a0! Suis la flèche verte.` }
+      : { mood: "panique", text: "Toc toc, chef\u00a0! L'adversaire prépare un mat… ça me fait trembler. Défends-toi au mieux\u00a0!" };
   }
-  if (value >= 300) return { mood: "content", text: "Tu as un gros avantage. Joue le coup de la flèche verte !" };
-  if (value >= 80) return { mood: "content", text: "Tu es un peu mieux. La flèche verte montre le meilleur coup." };
-  if (value <= -300) return { mood: "panique", text: "Ça sent mauvais… Il faut faire très attention." };
-  if (value <= -80) return { mood: "panique", text: "L'adversaire est un peu mieux. Cherche à te défendre." };
-  return { mood: "neutre", text: "La position est à peu près égale. Prends ton temps !" };
+  if (value >= 300) return { mood: "content", text: "Chef, tu as un gros avantage\u00a0! Joue le coup de la flèche verte." };
+  if (value >= 80) return { mood: "content", text: "Tu es un peu mieux, chef. La flèche verte montre le meilleur coup. Une case à la fois\u00a0!" };
+  if (value <= -300) return { mood: "panique", text: "Toc toc, chef\u00a0! Ça sent mauvais… Il faut faire très attention." };
+  if (value <= -80) return { mood: "panique", text: "L'adversaire est un peu mieux, chef. On se défend, on ne lâche rien." };
+  return { mood: "neutre", text: "C'est à peu près égal, chef. Prends ton temps\u00a0!" };
 }

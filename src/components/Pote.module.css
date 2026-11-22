@@ -140,12 +140,69 @@
   90%, 100% { opacity: 0; transform: scale(1) translateY(-4px); }
 }
 
+/* --- Pote t'interpelle (« Toc toc, chef ! ») : il tape deux fois du pied sur sa case,
+       puis (s'il a peur) il tremble. Des petits traits d'impact apparaissent sous lui. --- */
+.appel { animation: toctoc 0.36s ease-out 2; }
+.panique.appel { animation: toctoc 0.36s ease-out 2, shake 0.45s ease-in-out 0.8s 2; }
+@keyframes toctoc {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  35% { transform: translateY(-7px) scale(0.97, 1.03); }
+  60% { transform: translateY(0) scale(1.08, 0.9); }
+}
+.tocs {
+  position: absolute;
+  left: -4px;
+  right: -4px;
+  bottom: -6px;
+  width: calc(100% + 8px);
+  height: 14px;
+  overflow: visible;
+  pointer-events: none;
+}
+.impact {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  opacity: 0;
+  animation: impact 0.36s ease-out forwards;
+}
+.toc1 { animation-delay: 0.2s; }
+.toc2 { animation-delay: 0.56s; }
+@keyframes impact {
+  0% { opacity: 0; }
+  30% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* La colonne à droite de Pote : la bulle, et en dessous le petit bouton du son */
+.colonne {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--s1);
+}
+.son {
+  min-height: 32px;
+  padding: 0 var(--s1);
+  border: none;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
 /* La bulle de BD : trait d'encre et petite pointe vers Pote.
    Sa couleur change avec l'humeur de Pote (en fondu). */
 .bubble {
   --bulle: var(--card);
   position: relative;
-  flex: 1;
+  align-self: stretch;
   background: var(--bulle);
   border: 2px solid var(--text);
   border-radius: 18px;
@@ -207,6 +264,7 @@
    Pote reste immobile. Les bulles de pensée et les points restent visibles, sans bouger. */
 @media (prefers-reduced-motion: reduce) {
   .pote, .pote *, .texte, .points i { animation: none !important; }
+  .impact { animation: none; opacity: 1; }
   .pensee { animation: none; opacity: 1; }
   .points i:nth-child(1) { background: var(--text); }
 }

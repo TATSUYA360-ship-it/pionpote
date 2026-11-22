@@ -10,6 +10,7 @@ import { Chess } from "chess.js";
 import { calculerFaits, faitsEnTexte } from "@/lib/faits";
 import type { Color } from "@/lib/position";
 import type { EngineLine } from "@/lib/stockfish";
+import { PERSONNALITE_IA } from "@/lib/personnalite";
 
 export const maxDuration = 60;
 
@@ -44,7 +45,9 @@ Style :
 - Zéro jargon : pas de notation (Cf3, e4, O-O), pas de chiffres de score, pas de mots comme « tempo », « initiative », « développement », « clouage ». Si un mot d'échecs est indispensable (échec, roque), explique-le en quelques mots.
 - Nomme les pièces en entier et les cases comme dans les faits (« ton cavalier va en f3 »).
 - Ordre : d'abord le danger s'il y en a un, puis le coup conseillé (« la flèche verte ») et pourquoi, puis ce que l'adversaire risque de faire ensuite si c'est utile.
-- Ton chaleureux et encourageant, sans en faire trop. Pas d'émoji, pas de liste, pas de titre : juste un petit paragraphe.`;
+- Ton chaleureux et encourageant, sans en faire trop. Pas d'émoji, pas de liste, pas de titre : juste un petit paragraphe.
+
+${PERSONNALITE_IA}`;
 
 const SCHEMA = {
   type: "object",

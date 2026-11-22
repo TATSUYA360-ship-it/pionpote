@@ -33,6 +33,7 @@ import Pote, { type Reflexion } from "./Pote";
 import MangaFx from "./MangaFx";
 import PhotoReader from "./PhotoReader";
 import { buildMoveFx, type MoveFx } from "@/lib/moveFx";
+import { PHRASES, auHasard, avecCri } from "@/lib/personnalite";
 import styles from "./BoardEditor.module.css";
 
 // menace : le coup que l'adversaire voudrait jouer (flèche orange), s'il y en a un.
@@ -46,11 +47,10 @@ type Partie = { fens: string[]; sans: string[]; coups: { from: Square; to: Squar
 const nouvellePartie = (fen: string): Partie => ({ fens: [fen], sans: [], coups: [] });
 const NOM_CAMP: Record<Color, string> = { w: "Blancs", b: "Noirs" };
 // Ce que dit Pote. « reflexion » : Pote est en train de réfléchir (animation), sinon rien.
-type Bulle = { mood: Mood; text: string; reflexion?: Reflexion };
+// « appel » : Pote t'interpelle (« Toc toc, chef ! ») parce qu'il y a un danger.
+type Bulle = { mood: Mood; text: string; reflexion?: Reflexion; appel?: boolean };
 
-const ACCUEIL =
-  "Salut, moi c'est Pote\u00a0! Joue les coups de ta partie ici\u00a0: touche une pièce, puis la case où elle va. " +
-  "Je t'explique après chaque coup. Si ta partie a déjà commencé, prends ton échiquier en photo.";
+const ACCUEIL = PHRASES.accueil;
 
 export default function BoardEditor() {
   const [board, setBoard] = useState<BoardMap>(() => fenToBoard(START_FEN));
@@ -71,7 +71,7 @@ export default function BoardEditor() {
   const tourPartie = fenPartie.split(" ")[1] as Color;
 
   // L'explication de la position analysée (pour la réafficher après une animation).
-  const explicationRef = useRef<{ mood: Mood; text: string } | null>(null);
+  const explicationRef = useRef<Bulle | null>(null);
   // Numéro de la dernière analyse : une réponse en retard d'une ancienne analyse est ignorée.
   const analyseIdRef = useRef(0);
 
@@ -174,7 +174,7 @@ export default function BoardEditor() {
     setMode("partie");
     setFromPhoto(false);
     setOrientation("white");
-    setPote({ mood: "neutre", text: "Nouvelle partie ! Les Blancs commencent : touche une pièce, puis sa case." });
+    setPote({ mood: "neutre", text: PHRASES.nouvellePartie });
   };
 
   // Passe en mode correction, en partant de la position actuelle de la partie.
@@ -231,7 +231,7 @@ export default function BoardEditor() {
   // --- Photo de l'échiquier ---
   const onPhotoStart = () => {
     setFx(null);
-    setPote({ mood: "pensif", text: "Je regarde ta photo… ça peut prendre jusqu'à une minute.", reflexion: "calcul" });
+    setPote({ mood: "pensif", text: PHRASES.photo, reflexion: "calcul" });
   };
 
   const onPhotoRead = (rows: string[], doutes: string) => {
@@ -301,7 +301,7 @@ export default function BoardEditor() {
     // Numéro de cette analyse : si la position change pendant le calcul, on jette le résultat.
     const id = analyseIdRef.current;
     setStatus("loading");
-    setPote({ mood: "pensif", text: "Hmm, je réfléchis…", reflexion: "calcul" });
+    setPote({ mood: "pensif", text: auHasard([...PHRASES.calcul]), reflexion: "calcul" });
     try {
       engineRef.current ??= new StockfishEngine();
       const result = await engineRef.current.analyze(fenAnalyse, 15);
@@ -315,7 +315,7 @@ export default function BoardEditor() {
       console.error(err);
       if (id !== analyseIdRef.current) return;
       setStatus("error");
-      setPote({ mood: "panique", text: "Oups, le moteur n'a pas répondu. Recharge la page et réessaie." });
+      setPote({ mood: "panique", text: PHRASES.moteurEnPanne });
     }
   };
 
@@ -325,7 +325,10 @@ export default function BoardEditor() {
   const expliquer = async (fenAnalyse: string, camp: Color, lines: EngineLine[]) => {
     const id = analyseIdRef.current;
     const { mood } = poteReaction(lines[0]);
-    const secours = { mood, text: explicationSimple(calculerFaits(fenAnalyse, camp, lines)) };
+    const faits = calculerFaits(fenAnalyse, camp, lines);
+    // Danger ou menace : Pote t'interpelle (« Toc toc, chef ! ») en tapant du pied.
+    const appel = Boolean(faits.menace || faits.dangers.length);
+    const secours: Bulle = { mood, appel, text: explicationSimple(faits) };
     explicationRef.current = secours;
     if (!lines[0]?.pv[0]) {
       setPote(poteReaction(lines[0]));
@@ -333,7 +336,7 @@ export default function BoardEditor() {
     }
     setPote({
       mood: "pensif",
-      text: "J'ai trouvé le bon coup (la flèche verte). Je cherche comment te l'expliquer…",
+      text: auHasard([...PHRASES.cherche]),
       reflexion: "explication",
     });
     let resultat = secours;
@@ -344,7 +347,9 @@ export default function BoardEditor() {
         body: JSON.stringify({ fen: fenAnalyse, lines: lines.map(({ score, pv }) => ({ score, pv: pv.slice(0, 2) })) }),
       });
       const data = await res.json().catch(() => ({}));
-      if (res.ok && typeof data.explication === "string") resultat = { mood, text: data.explication };
+      if (res.ok && typeof data.explication === "string") {
+        resultat = { mood, appel, text: appel ? avecCri(data.explication) : data.explication };
+      }
     } catch {
       // pas d'internet : on garde l'explication de secours
     }
@@ -584,7 +589,7 @@ export default function BoardEditor() {
 
       <div className={styles.sideCol}>
         <div className={styles.pote}>
-          <Pote mood={pote.mood} text={pote.text} reflexion={pote.reflexion ?? null} />
+          <Pote mood={pote.mood} text={pote.text} reflexion={pote.reflexion ?? null} appel={pote.appel} />
         </div>
 
         <div className={styles.play}>
