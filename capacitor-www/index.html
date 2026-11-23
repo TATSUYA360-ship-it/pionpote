@@ -1,0 +1,42 @@
+<!doctype html>
+<!-- Page embarquée dans l'appli iPhone : affichée seulement si PionPote ne peut pas
+     se connecter au démarrage (mode avion, pas de réseau). -->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PionPote</title>
+<style>
+  :root { --bg:#f6efe0; --card:#fffdf8; --text:#1f1b16; --muted:#6b6257; --ink:#1b1712; --green:#2f8f4e; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#17140f; --card:#25211b; --text:#f3ede2; --muted:#b0a698; --ink:#6d6357; --green:#36a35a; } }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--text);
+    font: 16px/1.4 -apple-system, system-ui, sans-serif; }
+  main { min-height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:16px; padding:24px; box-sizing:border-box; text-align:center; }
+  .card { background:var(--card); border:1.5px solid var(--ink); border-radius:12px; padding:16px; max-width:340px; }
+  p { margin:0 0 12px; } .muted { color:var(--muted); font-size:14px; }
+  button { min-height:44px; padding:0 24px; border-radius:10px; border:1.5px solid var(--green);
+    background:var(--green); color:#fff; font:inherit; font-weight:600; }
+</style>
+</head>
+<body>
+<main>
+  <svg width="96" height="120" viewBox="0 0 120 150" aria-hidden="true">
+    <g fill="#fbf6ea" stroke="#1b1712" stroke-width="3" stroke-linejoin="round">
+      <path d="M30 140 q0 -18 18 -24 q-8 -10 -6 -22 h36 q2 12 -6 22 q18 6 18 24 z"/>
+      <rect x="34" y="86" width="52" height="10" rx="5"/>
+      <circle cx="60" cy="56" r="34"/>
+    </g>
+    <circle cx="47" cy="50" r="3.5" fill="#1b1712"/><circle cx="77" cy="50" r="3.5" fill="#1b1712"/>
+    <g fill="none" stroke="#1b1712" stroke-width="3" stroke-linecap="round">
+      <path d="M38 42 l14 -3"/><path d="M70 40 l14 2"/><path d="M50 70 q8 -4 18 2"/>
+    </g>
+  </svg>
+  <div class="card">
+    <p>Toc toc, chef ! Je n'arrive pas à me connecter.</p>
+    <p class="muted">Vérifie le Wi-Fi ou les données mobiles, puis réessaie.</p>
+    <button onclick="location.href='https://pionpote.vercel.app'">Réessayer</button>
+  </div>
+</main>
+</body>
+</html>

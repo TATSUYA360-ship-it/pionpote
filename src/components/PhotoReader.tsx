@@ -4,6 +4,7 @@
 // - « Choisir une image » ouvre la galerie (pratique pour une capture d'écran).
 // La photo est compressée (src/lib/photo.ts), envoyée au serveur (/api/lire-photo),
 // et la position lue est renvoyée à l'éditeur via `onRead`.
+import Link from "next/link";
 import { useRef, useState } from "react";
 import { compresserPhoto } from "@/lib/photo";
 import styles from "./PhotoReader.module.css";
@@ -81,6 +82,10 @@ export default function PhotoReader({ onStart, onRead, onError }: Props) {
       <p className={styles.tip}>
         Astuce : prends la photo bien au-dessus du plateau, avec tout l&apos;échiquier dans
         l&apos;image et une bonne lumière.
+      </p>
+      <p className={styles.tip}>
+        Ta photo est envoyée à l&apos;IA Claude (Anthropic) seulement pour reconnaître les pièces.
+        PionPote ne la garde pas. <Link href="/confidentialite">En savoir plus</Link>
       </p>
     </div>
   );

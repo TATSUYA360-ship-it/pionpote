@@ -28,6 +28,22 @@ Une fois l'appli en ligne (avec une adresse en https, par exemple sur Vercel) :
 L'icône de Pote apparaît sur ton écran d'accueil. PionPote s'ouvre en plein écran, et le moteur
 reste enregistré dans le téléphone, donc l'analyse marche même sans connexion.
 
+## L'appli iPhone (App Store)
+
+Le dossier `ios/` est le projet Xcode, fabriqué avec **Capacitor** (`capacitor.config.ts`).
+L'appli affiche le site en ligne (https://pionpote.vercel.app) en plein écran, avec en plus
+l'appareil photo, les vibrations et une page « pas de connexion » (`capacitor-www/hors-ligne.html`).
+
+Sur un Mac avec Xcode :
+
+```bash
+npm install
+npm run ios      # prépare le projet iPhone et ouvre Xcode
+```
+
+Dans Xcode : « App » > « Signing & Capabilities » > choisis ton équipe, puis ▶ pour lancer sur ton iPhone.
+Pour publier : Product > Archive > Distribute App.
+
 ## Comment tester
 
 1. Appuie sur **Analyser** avec la position de départ : Pote répond, une flèche verte apparaît, les 3 meilleurs coups s'affichent.

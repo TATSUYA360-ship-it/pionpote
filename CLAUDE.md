@@ -20,8 +20,12 @@ Next.js 15 (TypeScript, App Router, dossier `src/`), react-chessboard v4, chess.
 ## Appli téléphone
 L'utilisateur a un iPhone et veut une appli, pas un site. Choix actuel : PWA (manifest + service worker
 `public/sw.js`, ajout à l'écran d'accueil via Safari). Si on change des fichiers mis en cache,
-augmenter `CACHE` dans `public/sw.js`. Plus tard, éventuellement Capacitor pour l'App Store
-(compte Apple Developer 99 $/an + un Mac ou un service de build en ligne).
+augmenter `CACHE` dans `public/sw.js`. App Store : projet Capacitor prêt (`capacitor.config.ts`, dossier `ios/`). L'appli iPhone ouvre
+https://pionpote.vercel.app en plein écran : une mise en ligne sur main met donc aussi l'appli à jour.
+Repasser par Xcode seulement si on change `capacitor.config.ts`, `ios/` ou `capacitor-www/`
+(puis `npm run ios` sur un Mac). Icône et écran de démarrage : sources dans `resources/`.
+Pages exigées par Apple : `/confidentialite` et `/aide`. Le guide de publication est un doc Claude
+(« PionPote sur l'App Store : le guide »).
 
 ## Où en est-on
 - Étape 1 (plateau + moteur) : faite, avec animations manga des coups et version installable (PWA).
