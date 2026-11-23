@@ -9,10 +9,12 @@
 // t'interpelle (prop appel) : il tape deux fois du pied sur sa case (« Toc toc, chef ! »),
 // avec des petits traits d'impact sous lui, et un bruit de bois si le son est allumé.
 // Un petit bouton sous la bulle allume ou coupe ce son (coupé par défaut).
+// Dans l'appli iPhone, le téléphone vibre aussi quand Pote t'interpelle ou est content.
 // Toutes les animations sont en CSS (Pote.module.css) et s'arrêtent si le téléphone
 // demande « moins d'animations ».
 import { useEffect, useState } from "react";
 import type { Mood } from "@/lib/evaluation";
+import { vibrer } from "@/lib/natif";
 import { choisirSon, jouerTocToc, reveiller, sonActive } from "@/lib/sons";
 import styles from "./Pote.module.css";
 
@@ -124,9 +126,17 @@ export default function Pote({
     return () => window.removeEventListener("pointerdown", reveiller);
   }, []);
   // Chaque nouvel appel « Toc toc » fait le bruit (si le son est allumé).
+  // Dans l'appli iPhone, le téléphone vibre aussi (src/lib/natif.ts).
   useEffect(() => {
-    if (interpelle) jouerTocToc();
+    if (interpelle) {
+      jouerTocToc();
+      vibrer("alerte");
+    }
   }, [interpelle, text]);
+  // Petit tapotement quand Pote est content (bon coup), seulement dans l'appli iPhone.
+  useEffect(() => {
+    if (mood === "content" && !reflexion) vibrer("leger");
+  }, [mood, reflexion]);
 
   const basculerSon = () => {
     const actif = !son;

@@ -1,6 +1,8 @@
 // page.tsx : la page d'accueil de l'appli (adresse "/").
 // En haut : le logo "feutre" (titre écrit au marqueur, souligné en vert, Pote au-dessus)
-// et la petite phrase d'accueil.
+// et la petite phrase d'accueil. En bas : les liens « Aide » et « Confidentialité »
+// (demandés par Apple pour l'App Store).
+import Link from "next/link";
 import BoardEditor from "@/components/BoardEditor";
 import { PoteIcon } from "@/components/Pote";
 
@@ -31,6 +33,10 @@ export default function Home() {
         <p className="tagline">ton pote pour comprendre les échecs</p>
       </header>
       <BoardEditor />
+      <footer className="pied">
+        <Link href="/aide">Aide</Link>
+        <Link href="/confidentialite">Confidentialité</Link>
+      </footer>
     </main>
   );
 }

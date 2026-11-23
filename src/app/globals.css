@@ -112,6 +112,20 @@ button { font: inherit; }
   margin-top: -4px;
   filter: url(#trait-main);
 }
+/* Pied de page : petits liens discrets « Aide » et « Confidentialité ». */
+.pied {
+  display: flex;
+  justify-content: center;
+  gap: var(--s5);
+  margin-top: var(--s5);
+  font-size: 14px;
+}
+.pied a {
+  color: var(--muted);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
 .tagline {
   margin: var(--s2) 0 0;
   font-family: var(--font-feutre), "Comic Sans MS", cursive;

@@ -9,3 +9,7 @@
   font-size: 13px;
   color: var(--muted);
 }
+/* Le lien « En savoir plus » garde la couleur discrète du texte. */
+.tip a {
+  color: inherit;
+}
