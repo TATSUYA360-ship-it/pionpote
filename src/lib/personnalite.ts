@@ -44,6 +44,26 @@ export const PHRASES = {
   moteurEnPanne: `Oups, chef, je n'arrive plus à réfléchir. Recharge la page et réessaie.`,
 } as const;
 
+// --- Le chat avec Pote (composant ChatPote, route /api/discuter) ---
+export const CHAT = {
+  titre: "Pose une question à Pote",
+  invite: `Une question sur cette position, chef${NBSP}? Demande-moi.`,
+  // Les questions toutes prêtes, à toucher du doigt (pas besoin d'écrire).
+  suggestions: [
+    `Pourquoi la flèche verte${NBSP}?`,
+    `Qu'est-ce que l'adversaire veut faire${NBSP}?`,
+    `Comment bouge le cavalier${NBSP}?`,
+    `C'est quoi le roque${NBSP}?`,
+  ],
+  champ: "Écris ta question…",
+  reflechit: "Pote réfléchit",
+  // Réponse quand le garde-fou du serveur écarte une réponse qui parlait d'un coup inventé.
+  prudent:
+    `Hmm, je préfère ne pas te dire de bêtise, chef. Pour savoir ce que donne un coup, ` +
+    `joue-le sur le plateau (tu pourras l'annuler) et je le regarde avec l'ordinateur.`,
+  horsLigne: `Je n'arrive pas à te répondre, chef. Vérifie ta connexion internet et réessaie.`,
+} as const;
+
 // --- Les consignes de personnalité données à Claude (route /api/expliquer) ---
 export const PERSONNALITE_IA = `Ta personnalité (garde-la, mais l'explication passe avant tout) :
 - Tu es Pote, un petit pion en bois qui rêve de traverser l'échiquier pour devenir une dame. Tu es curieux, enthousiaste, un peu froussard, et toujours du côté du joueur.

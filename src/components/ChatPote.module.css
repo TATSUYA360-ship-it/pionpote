@@ -1,0 +1,77 @@
+/* ChatPote.module.css : le chat avec Pote.
+   Questions du joueur à droite (trait fin), réponses de Pote à gauche avec sa petite tête,
+   dans une bulle de la couleur de son humeur (comme la grande bulle en haut). */
+.chat { display: flex; flex-direction: column; gap: var(--s3); }
+.hint { margin: 0; color: var(--muted); font-size: 14px; }
+
+.fil { display: flex; flex-direction: column; gap: var(--s3); }
+
+/* La question du joueur */
+.joueur {
+  align-self: flex-end;
+  max-width: 85%;
+  margin: 0;
+  padding: var(--s2) var(--s3);
+  border: var(--line);
+  border-radius: var(--radius) var(--radius) 4px var(--radius);
+  font-size: 15px;
+}
+
+/* La réponse de Pote : sa tête + la bulle */
+.ligne { display: flex; align-items: flex-end; gap: var(--s2); max-width: 92%; }
+.avatar { flex: 0 0 32px; width: 32px; }
+.avatar svg { width: 100%; }
+.pote {
+  --bulle: var(--card);
+  margin: 0;
+  padding: var(--s2) var(--s3);
+  background: var(--bulle);
+  border: 2px solid var(--text);
+  border-radius: var(--radius) var(--radius) var(--radius) 4px;
+  font-size: 15px;
+  line-height: 1.45;
+}
+.bulle_content { --bulle: var(--green-soft); }
+.bulle_panique { --bulle: var(--red-soft); }
+.bulle_pensif { --bulle: var(--blue-soft); }
+
+/* Les trois petits points pendant que Pote réfléchit */
+.points { display: flex; gap: 5px; padding: var(--s1) 0; }
+.points i {
+  width: 7px;
+  height: 7px;
+  border: 1.5px solid var(--text);
+  border-radius: 50%;
+  animation: point 1.2s ease-in-out infinite;
+}
+.points i:nth-child(2) { animation-delay: 0.15s; }
+.points i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes point {
+  0%, 60%, 100% { transform: translateY(0); background: transparent; }
+  30% { transform: translateY(-4px); background: var(--text); }
+}
+
+/* Les questions toutes prêtes */
+.suggestions { display: flex; flex-wrap: wrap; gap: var(--s2); }
+
+/* Le champ pour écrire + « Envoyer » */
+.form { display: flex; gap: var(--s2); }
+.champ {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: var(--s2) var(--s3);
+  border: var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px; /* 16 px minimum : sinon l'iPhone zoome quand on touche le champ */
+}
+.champ::placeholder { color: var(--muted); }
+.form .btn:disabled { cursor: default; }
+
+@media (prefers-reduced-motion: reduce) {
+  .points i { animation: none; }
+  .points i:nth-child(1) { background: var(--text); }
+}

@@ -25,9 +25,11 @@ augmenter `CACHE` dans `public/sw.js`. Plus tard, éventuellement Capacitor pour
 
 ## Où en est-on
 - Étape 1 (plateau + moteur) : faite, avec animations manga des coups et version installable (PWA).
-- Étape 2 (explications par l'IA) : à faire. La clé API Claude doit rester côté serveur (route API Next.js +
+- Étape 2 (explications par l'IA) : faite (route `/api/expliquer`). La clé API Claude doit rester côté serveur (route API Next.js +
   variable d'environnement), jamais dans le code du navigateur.
-- Étape 3 (photo) et étape 4 (chat) : à faire.
+- Étape 3 (photo) : faite (route `/api/lire-photo`).
+- Étape 4 (chat) : faite. Route `/api/discuter` + composant `ChatPote`. Garde-fou : une réponse qui cite une case
+  absente des faits est remplacée par une phrase prudente.
 
 ## Design
 Avant de toucher à l'interface, lire `DESIGN.md` (le « style PionPote ») et le respecter :

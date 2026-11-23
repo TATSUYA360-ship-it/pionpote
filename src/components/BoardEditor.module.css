@@ -1,6 +1,6 @@
 /* BoardEditor.module.css : la mise en page de l'écran principal.
    Téléphone : une seule colonne, dans l'ordre où on s'en sert
-   (photo → Pote → plateau → qui joue + Analyser → historique de la partie → résultats → corriger).
+   (photo → Pote → plateau → qui joue + Analyser → historique de la partie → résultats → chat → corriger).
    Ordinateur (900 px et plus) : plateau à gauche, Pote et résultats à droite. */
 .layout {
   display: flex;
@@ -18,6 +18,7 @@
    le plateau reste en haut de l'écran, plus besoin de faire défiler à chaque coup. */
 .photoBas { order: 6; }
 .results { order: 7; }
+.chat { order: 7; }
 .edit { order: 8; display: flex; flex-direction: column; gap: var(--s3); }
 
 .board {

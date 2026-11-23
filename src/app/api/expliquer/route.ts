@@ -11,24 +11,13 @@ import { calculerFaits, faitsEnTexte } from "@/lib/faits";
 import type { Color } from "@/lib/position";
 import type { EngineLine } from "@/lib/stockfish";
 import { PERSONNALITE_IA } from "@/lib/personnalite";
+import { adresseIP, creerLimite, erreur, lireLignes } from "@/lib/serveur";
 
 export const maxDuration = 60;
 
-// Limite simple : 60 explications par jour et par adresse internet (gardée en mémoire,
-// donc pas parfaite). La vraie protection reste la limite de dépenses sur console.anthropic.com.
+// Limite simple : 60 explications par jour et par adresse internet (voir src/lib/serveur.ts).
 const LIMITE_PAR_JOUR = 60;
-const compteurs = new Map<string, { jour: string; n: number }>();
-
-function depasseLaLimite(ip: string): boolean {
-  const jour = new Date().toISOString().slice(0, 10);
-  const c = compteurs.get(ip);
-  if (!c || c.jour !== jour) {
-    compteurs.set(ip, { jour, n: 1 });
-    return false;
-  }
-  c.n += 1;
-  return c.n > LIMITE_PAR_JOUR;
-}
+const depasseLaLimite = creerLimite(LIMITE_PAR_JOUR);
 
 // Les consignes données à Claude.
 const CONSIGNES = `Tu es Pote, un petit pion qui explique les échecs à un vrai débutant (enfant ou adulte) pendant une partie.
@@ -56,42 +45,12 @@ const SCHEMA = {
   additionalProperties: false,
 };
 
-function erreur(message: string, status: number) {
-  return Response.json({ erreur: message }, { status });
-}
-
-// Vérifie que les lignes envoyées par le téléphone ont la bonne forme.
-function lireLignes(x: unknown): EngineLine[] | null {
-  if (!Array.isArray(x) || x.length === 0 || x.length > 3) return null;
-  const lignes: EngineLine[] = [];
-  for (const l of x as Record<string, unknown>[]) {
-    const score = l?.score as Record<string, unknown> | undefined;
-    const pv = l?.pv;
-    if (
-      !score ||
-      (score.type !== "cp" && score.type !== "mate") ||
-      typeof score.value !== "number" ||
-      !Array.isArray(pv) ||
-      !pv.slice(0, 2).every((m) => typeof m === "string" && /^[a-h][1-8][a-h][1-8][qrbn]?$/.test(m))
-    ) {
-      return null;
-    }
-    lignes.push({
-      multipv: lignes.length + 1,
-      depth: 0,
-      score: { type: score.type, value: score.value },
-      pv: (pv as string[]).slice(0, 2),
-    });
-  }
-  return lignes;
-}
-
 export async function POST(request: Request) {
   if (!process.env.ANTHROPIC_API_KEY) {
     return erreur("Les explications ne sont pas encore activées sur le serveur.", 503);
   }
 
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "inconnu";
+  const ip = adresseIP(request);
   if (depasseLaLimite(ip)) {
     return erreur(`Tu as déjà eu ${LIMITE_PAR_JOUR} explications aujourd'hui. Reviens demain !`, 429);
   }

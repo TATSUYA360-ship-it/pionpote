@@ -50,8 +50,14 @@ Pas d'étiquette, pas de contour, pas d'ombre sur le logo : l'utilisateur trouva
   Pote parle **toujours** juste au-dessus du plateau sur téléphone.
 
 ## Ordre de l'écran sur téléphone
-Photo → Pote → plateau (+ « Annuler le coup ») → « Qui joue ? » ou « Aux Blancs de jouer » + Analyser → la partie (liste des coups) → résultats → corriger la position.
+Photo → Pote → plateau (+ « Annuler le coup ») → « Qui joue ? » ou « Aux Blancs de jouer » + Analyser → la partie (liste des coups) → résultats → chat avec Pote → corriger la position.
 (Réglé avec `order` dans `BoardEditor.module.css`.)
+
+## Chat avec Pote
+Carte `.card` « Pose une question à Pote » sous les résultats. Questions du joueur à droite (trait fin),
+réponses de Pote à gauche avec sa petite tête (`PoteIcon`) et une bulle de la couleur de son humeur.
+Questions toutes prêtes en `.btn btn-petit`, champ texte en 16 px (sinon l'iPhone zoome).
+Le chat repart à zéro à chaque nouvelle position.
 
 ## Animations
 Style manga **au trait de feutre** (traits de vitesse dessinés, BAM !, secousse) seulement pour montrer un coup :
