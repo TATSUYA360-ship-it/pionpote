@@ -1,0 +1,46 @@
+# codemagic.yaml : la « recette » pour fabriquer l'appli iPhone sur Codemagic,
+# un service en ligne qui prête un Mac. Comme ça, pas besoin d'avoir un Mac chez soi.
+# À chaque lancement, Codemagic :
+#   1. télécharge le code depuis GitHub,
+#   2. prépare le projet iPhone (Capacitor),
+#   3. signe l'appli avec ton compte Apple (automatiquement),
+#   4. fabrique le fichier de l'appli (.ipa),
+#   5. l'envoie sur App Store Connect, dans TestFlight, pour l'essayer sur ton iPhone.
+workflows:
+  ios-app-store:
+    name: PionPote iPhone (TestFlight)
+    instance_type: mac_mini_m2
+    max_build_duration: 45
+    # Le lien avec ton compte Apple. « PionPote » = le nom donné à la clé API
+    # dans Codemagic (Team settings > Integrations > Developer Portal).
+    integrations:
+      app_store_connect: PionPote
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.pionpote.app
+      vars:
+        # Le numéro de l'appli chez Apple (App Store Connect > ton appli >
+        # Informations sur l'app > « Identifiant Apple », une suite de chiffres).
+        APP_STORE_APPLE_ID: "0000000000"
+      node: 22
+      xcode: latest
+    scripts:
+      - name: Installer les bibliothèques
+        script: npm ci
+      - name: Préparer le projet iPhone
+        script: npx cap sync ios
+      - name: Préparer la signature Apple
+        script: xcode-project use-profiles
+      - name: Numéro de version suivant
+        script: |
+          DERNIER=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" || echo 0)
+          cd ios/App && agvtool new-version -all $((DERNIER + 1))
+      - name: Fabriquer l'appli
+        script: xcode-project build-ipa --project "ios/App/App.xcodeproj" --scheme "App"
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true

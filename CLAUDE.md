@@ -23,7 +23,7 @@ L'utilisateur a un iPhone et veut une appli, pas un site. Choix actuel : PWA (ma
 augmenter `CACHE` dans `public/sw.js`. App Store : projet Capacitor prêt (`capacitor.config.ts`, dossier `ios/`). L'appli iPhone ouvre
 https://pionpote.vercel.app en plein écran : une mise en ligne sur main met donc aussi l'appli à jour.
 Repasser par Xcode seulement si on change `capacitor.config.ts`, `ios/` ou `capacitor-www/`
-(puis `npm run ios` sur un Mac). Icône et écran de démarrage : sources dans `resources/`.
+(puis `npm run ios` sur un Mac). L'utilisateur n'a pas de Mac : fabrication en ligne avec Codemagic (`codemagic.yaml`, envoi dans TestFlight). Icône et écran de démarrage : sources dans `resources/`.
 Pages exigées par Apple : `/confidentialite` et `/aide`. Le guide de publication est un doc Claude
 (« PionPote sur l'App Store : le guide »).
 

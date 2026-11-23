@@ -44,6 +44,13 @@ npm run ios      # prépare le projet iPhone et ouvre Xcode
 Dans Xcode : « App » > « Signing & Capabilities » > choisis ton équipe, puis ▶ pour lancer sur ton iPhone.
 Pour publier : Product > Archive > Distribute App.
 
+### Sans Mac : Codemagic
+
+Le fichier `codemagic.yaml` est la recette pour fabriquer l'appli en ligne sur
+[codemagic.io](https://codemagic.io) (un Mac prêté). Il envoie l'appli dans TestFlight.
+Il faut d'abord relier Codemagic à GitHub et à ton compte Apple (clé API nommée « PionPote »),
+puis remplacer `APP_STORE_APPLE_ID` par le numéro de l'appli dans App Store Connect.
+
 ## Comment tester
 
 1. Appuie sur **Analyser** avec la position de départ : Pote répond, une flèche verte apparaît, les 3 meilleurs coups s'affichent.
