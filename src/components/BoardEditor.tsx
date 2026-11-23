@@ -9,6 +9,7 @@
 // - le suivi de la partie : en mode « partie », on joue les vrais coups sur le plateau
 //   (touche une pièce puis sa case), le camp qui joue change tout seul, l'historique
 //   des coups est gardé (avec « Annuler le coup ») et Pote analyse après chaque coup.
+// - le chat avec Pote (ChatPote), sous les résultats, pour poser des questions sur la position.
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import { Chess, type Square } from "chess.js";
@@ -32,6 +33,7 @@ import AnalysisPanel from "./AnalysisPanel";
 import Pote, { type Reflexion } from "./Pote";
 import MangaFx from "./MangaFx";
 import PhotoReader from "./PhotoReader";
+import ChatPote from "./ChatPote";
 import { buildMoveFx, type MoveFx } from "@/lib/moveFx";
 import { PHRASES, auHasard, avecCri } from "@/lib/personnalite";
 import styles from "./BoardEditor.module.css";
@@ -638,6 +640,13 @@ export default function BoardEditor() {
               danger={analysis.danger}
               onShowMove={showMove}
             />
+          </div>
+        )}
+
+        {/* Le chat : il repart à zéro à chaque nouvelle position (key = la position). */}
+        {analysis && analysis.lines[0]?.pv[0] && (
+          <div className={styles.chat}>
+            <ChatPote key={analysis.fen} fen={analysis.fen} lines={analysis.lines} />
           </div>
         )}
       </div>

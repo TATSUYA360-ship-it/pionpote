@@ -309,3 +309,23 @@ export function explicationSimple(f: Faits): string {
   }
   return phrases.join(" ");
 }
+
+/**
+ * Où sont toutes les pièces, en mots (« Blancs : roi en g1, dame en d1… »).
+ * Sert au chat : si le joueur demande « où est ma dame ? », Pote peut répondre
+ * sans rien inventer.
+ */
+export function piecesEnTexte(fen: string): string {
+  const chess = new Chess(fen, { skipValidation: true });
+  const ordre = ["k", "q", "r", "b", "n", "p"];
+  const parCamp: Record<Color, string[]> = { w: [], b: [] };
+  for (const type of ordre) {
+    for (const rang of chess.board()) {
+      for (const c of rang) {
+        if (c && c.type === type) parCamp[c.color].push(`${NOM[type].nom} en ${c.square}`);
+      }
+    }
+  }
+  return `Pièces des Blancs : ${parCamp.w.join(", ") || "aucune"}.\nPièces des Noirs : ${parCamp.b.join(", ") || "aucune"}.`;
+}
+
